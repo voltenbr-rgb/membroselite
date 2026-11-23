@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+ <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#030806"/><stop offset=".55" stop-color="#0a1710"/><stop offset="1" stop-color="#020403"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#72ff27" stop-opacity=".48"/><stop offset="1" stop-color="#20ff45" stop-opacity="0"/></radialGradient>
+ <linearGradient id="metal" x2="0" y2="1"><stop stop-color="#fff"/><stop offset=".45" stop-color="#9aa79d"/><stop offset="1" stop-color="#344238"/></linearGradient>
+ <linearGradient id="green" x2="1" y2="1"><stop stop-color="#d8ff79"/><stop offset=".5" stop-color="#83ff19"/><stop offset="1" stop-color="#1c9e27"/></linearGradient>
+ <linearGradient id="screen" x2="1" y2="1"><stop stop-color="#102e24"/><stop offset="1" stop-color="#06100d"/></linearGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="48"/></filter>
+ <filter id="shadow"><feGaussianBlur stdDeviation="16"/></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<ellipse cx="1120" cy="440" rx="550" ry="450" fill="url(#glow)" filter="url(#blur)"/>
+<g opacity=".18" stroke="#69ff38" fill="none"><path d="M0 130H1600M0 260H1600M0 390H1600M0 520H1600M0 650H1600M0 780H1600"/><path d="M180 0V900M420 0V900M660 0V900M900 0V900M1140 0V900M1380 0V900"/></g>
+<g transform="translate(900 90)">
+ <rect x="0" y="70" width="520" height="300" rx="24" fill="#07130f" stroke="#3aff8d" stroke-width="5" transform="rotate(-7 260 220)"/>
+ <rect x="25" y="92" width="470" height="250" rx="14" fill="url(#screen)" transform="rotate(-7 260 220)"/>
+ <g transform="rotate(-7 260 220)" stroke="#8aff3d" fill="none" opacity=".9"><path d="M75 285L145 220 210 246 300 150 390 178 455 120" stroke-width="9"/><path d="M75 305H450M75 145V305" stroke="#2b8051" stroke-width="3"/></g>
+ <rect x="410" y="300" width="430" height="255" rx="22" fill="#07130f" stroke="#00d99b" stroke-width="5" transform="rotate(6 625 425)"/>
+ <rect x="432" y="320" width="386" height="215" rx="12" fill="url(#screen)" transform="rotate(6 625 425)"/>
+ <g transform="rotate(6 625 425)" fill="#8bff36"><rect x="480" y="430" width="40" height="70" rx="5"/><rect x="550" y="390" width="40" height="110" rx="5"/><rect x="620" y="350" width="40" height="150" rx="5"/><rect x="690" y="325" width="40" height="175" rx="5"/></g>
+</g>
+<g transform="translate(930 255)">
+ <ellipse cx="250" cy="540" rx="300" ry="55" fill="#5cff2b" opacity=".22" filter="url(#shadow)"/>
+ <path d="M80 600Q95 420 205 385Q290 360 380 410Q470 460 490 600Z" fill="#101b17" stroke="#4aff50" stroke-width="5"/>
+ <path d="M170 395Q140 320 155 220Q165 80 260 70Q360 75 370 210Q380 315 335 400Q255 455 170 395Z" fill="#b17d58"/>
+ <path d="M145 230Q115 75 255 45Q390 65 385 220Q350 145 285 150Q220 155 145 230Z" fill="#111715"/>
+ <path d="M155 235Q195 190 250 195Q310 190 370 230L355 270Q285 235 170 270Z" fill="#111715"/>
+ <path d="M180 270Q220 250 245 270M285 270Q325 250 350 270" stroke="#101714" stroke-width="10" fill="none"/>
+ <rect x="175" y="255" width="85" height="48" rx="18" fill="none" stroke="#141c19" stroke-width="10"/><rect x="275" y="255" width="85" height="48" rx="18" fill="none" stroke="#141c19" stroke-width="10"/><path d="M260 275H275" stroke="#141c19" stroke-width="9"/>
+ <path d="M245 315Q270 330 295 312" stroke="#593c2c" stroke-width="7" fill="none"/>
+ <path d="M210 400Q260 445 320 400" stroke="#263b30" stroke-width="16" fill="none"/>
+</g>
+<g transform="translate(85 105)">
+ <path d="M210 0L230 55 285 55 242 88 258 142 210 110 162 142 178 88 135 55 190 55Z" fill="url(#green)" opacity=".95"/>
+ <text x="0" y="270" font-family="Arial,sans-serif" font-size="148" font-weight="900" letter-spacing="-7" fill="url(#metal)">ELITE</text>
+ <text x="0" y="405" font-family="Arial,sans-serif" font-size="138" font-weight="900" letter-spacing="-5" fill="url(#green)">ACADEMY</text>
+ <path d="M0 440H610" stroke="#8bff24" stroke-width="8" stroke-linecap="round"/>
+ <text x="5" y="500" font-family="Arial,sans-serif" font-size="35" font-weight="700" letter-spacing="13" fill="#e7f1e9">ÁREA DE MEMBROS</text>
+ <text x="5" y="590" font-family="Arial,sans-serif" font-size="36" font-weight="800" fill="#f5fff7">CONHECIMENTO QUE</text>
+ <text x="5" y="640" font-family="Arial,sans-serif" font-size="36" font-weight="800" fill="#a4ff32">TRANSFORMA RESULTADOS.</text>
+</g>
+<g fill="none" stroke="#82ff39" opacity=".65"><circle cx="1290" cy="170" r="95" stroke-width="2"/><circle cx="1290" cy="170" r="125" stroke-dasharray="8 18" stroke-width="3"/><path d="M0 840Q450 760 900 850T1600 820" stroke-width="4"/></g>
+<rect x="18" y="18" width="1564" height="864" rx="26" fill="none" stroke="#70ff3b" stroke-opacity=".35" stroke-width="3"/>
+</svg>
