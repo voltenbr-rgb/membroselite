@@ -27,7 +27,7 @@ const initialCourses = [
  {id:'trafego-elite',name:'Tráfego Elite',desc:'Fundamentos de campanhas, públicos e análise de resultados.',color:'orange',tag:'ACESSO PREMIUM',code:'TE',locked:true,progress:0,modules:[]},
  {id:'copy-pro',name:'Copywriting Pro',desc:'Escrita persuasiva, ofertas e comunicação que conecta.',color:'purple',tag:'ACESSO PREMIUM',code:'CP',locked:true,progress:0,modules:[]},
  {id:'automacao',name:'Automação Inteligente',desc:'Ganhe tempo com fluxos e processos digitais.',color:'green',tag:'ACESSO PREMIUM',code:'AI',locked:true,progress:0,modules:[]}
-]};
+];
 let state = loadState();
 let currentCourse = null;
 let currentLessonKey = null;
