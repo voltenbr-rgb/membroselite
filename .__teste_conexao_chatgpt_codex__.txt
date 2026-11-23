@@ -1,0 +1,1 @@
+Arquivo temporário para verificar a permissão de escrita da integração. Será removido em seguida.
