@@ -41,6 +41,8 @@
       <button class="nav-item active" data-view="home"><span>⌂</span> Visão geral</button>
       <button class="nav-item" data-view="courses"><span>▤</span> Meus cursos</button>
       <button class="nav-item" data-view="library"><span>▧</span> Biblioteca</button>
+      <div class="side-label side-label-spaced">ACOMPANHAMENTO</div>
+      <div class="sidebar-feature"><div class="sidebar-feature-icon">✦</div><div><b>Minha evolução</b><small>Continue sua jornada</small></div><span>↗</span></div>
       <div class="side-bottom">
         <div class="side-label">SUA CONTA</div>
         <button class="nav-item" id="profileButton"><span>◉</span> Meu perfil</button>
@@ -53,6 +55,7 @@
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
         <div class="breadcrumb">ÁREA DE MEMBROS <span>/</span> <b id="breadcrumbCurrent">INÍCIO</b></div>
+        <div class="top-search"><span>⌕</span><input type="search" placeholder="Buscar cursos, aulas e materiais..." aria-label="Buscar na plataforma"></div>
         <div class="top-actions">
           <button class="icon-button" title="Notificações">♧<i class="notification-dot"></i></button>
           <div class="user-chip"><div class="avatar" id="userInitial">E</div><div><b id="userName">Aluno</b><small>Membro</small></div><span>⌄</span></div>
@@ -66,23 +69,53 @@
           <div class="date-pill">◷ &nbsp; SUA JORNADA COMEÇA AGORA</div>
         </div>
 
-        <div class="promo-grid" id="promoGrid">
-          <article class="promo promo-main">
-            <img class="promo-art" src="assets/elite-academy-cover.svg" alt="Capa oficial Elite Academy — Área de Membros">
-            <div class="promo-video-shade"></div>
-            <div class="promo-content promo-art-content"><span class="promo-tag">IDENTIDADE VISUAL OFICIAL</span><button class="text-link" data-course="metodo-lp">EXPLORAR MÉTODO LP <b>↗</b></button></div>
-            <div class="promo-number">ELITE <span>/ ACADEMY</span></div>
-          </article>
-          <article class="promo promo-purple"><span class="promo-tag">NOVO TREINAMENTO</span><div class="promo-symbol">⌘</div><h3>Digital<br>Scale Pro</h3><p>Escala inteligente para negócios online.</p><span class="promo-arrow">↗</span></article>
-          <article class="promo promo-blue"><span class="promo-tag">CONTEÚDO EXCLUSIVO</span><div class="promo-symbol">◈</div><h3>Design<br>Magnético</h3><p>Crie uma presença digital impossível de ignorar.</p><span class="promo-arrow">↗</span></article>
-        </div>
-
-        <div class="section-heading"><div><div class="eyebrow">SUA BIBLIOTECA</div><h2>Continue aprendendo</h2></div><button class="subtle-link" data-view="courses">VER TODOS <span>↗</span></button></div>
-        <div class="course-grid" id="homeCourses"></div>
-
-        <div class="lower-grid">
-          <section class="panel progress-panel"><div class="panel-heading"><div><div class="eyebrow">SEU DESEMPENHO</div><h3>Ritmo de evolução</h3></div><span class="panel-icon">↗</span></div><div class="progress-content"><div class="progress-ring"><div><b id="progressPercent">24%</b><small>CONCLUÍDO</small></div></div><div><h4>Você está no caminho.</h4><p class="muted">Pequenos passos todos os dias constroem grandes resultados.</p><div class="mini-stats"><span><b id="completedLessons">6</b><small>AULAS VISTAS</small></span><span><b id="activeCourses">3</b><small>CURSOS ATIVOS</small></span></div></div></div></section>
-          <section class="panel quote-panel"><div class="quote-mark">“</div><p>O seu futuro é construído pelas decisões que você toma hoje.</p><span>— MENTALIDADE ELITE</span><div class="quote-decoration">✳</div></section>
+        <div class="home-dashboard">
+          <div class="home-primary">
+            <div class="promo-grid" id="promoGrid">
+              <article class="promo promo-main">
+                <img class="promo-art" src="assets/elite-academy-cover.svg" alt="Elite Academy — conhecimento que transforma resultados">
+                <div class="promo-video-shade"></div>
+                <div class="promo-content promo-art-content">
+                  <span class="promo-tag">BEM-VINDO À ELITE ACADEMY</span>
+                  <h2>Seu próximo nível<br>começa <em>agora.</em></h2>
+                  <p>Aprenda, coloque em prática e transforme conhecimento em resultado.</p>
+                  <button class="text-link" data-course="metodo-lp">CONTINUAR NO MÉTODO LP <b>↗</b></button>
+                </div>
+                <div class="promo-number">01 <span>/ SUA JORNADA</span></div>
+              </article>
+              <article class="promo promo-purple"><span class="promo-tag">ESCALA & PERFORMANCE</span><div class="promo-symbol">⌘</div><h3>Digital<br>Scale Pro</h3><p>Estratégias para crescer com inteligência.</p><span class="promo-arrow">↗</span></article>
+              <article class="promo promo-blue"><span class="promo-tag">CRIATIVIDADE & MARCA</span><div class="promo-symbol">◈</div><h3>Design<br>Magnético</h3><p>Uma presença digital que se destaca.</p><span class="promo-arrow">↗</span></article>
+            </div>
+            <div class="section-heading"><div><div class="eyebrow">SUA BIBLIOTECA</div><h2>Continue aprendendo</h2></div><button class="subtle-link" data-view="courses">VER TODOS <span>↗</span></button></div>
+            <div class="course-grid" id="homeCourses"></div>
+            <div class="lower-grid">
+              <section class="panel progress-panel"><div class="panel-heading"><div><div class="eyebrow">SEU DESEMPENHO</div><h3>Ritmo de evolução</h3></div><span class="panel-icon">↗</span></div><div class="progress-content"><div class="progress-ring"><div><b id="progressPercent">24%</b><small>CONCLUÍDO</small></div></div><div><h4>Você está no caminho.</h4><p class="muted">Pequenos passos todos os dias constroem grandes resultados.</p><div class="mini-stats"><span><b id="completedLessons">6</b><small>AULAS VISTAS</small></span><span><b id="activeCourses">3</b><small>CURSOS ATIVOS</small></span></div></div></div></section>
+              <section class="panel quote-panel"><div class="quote-mark">“</div><p>O seu futuro é construído pelas decisões que você toma hoje.</p><span>— MENTALIDADE ELITE</span><div class="quote-decoration">✳</div></section>
+            </div>
+          </div>
+          <aside class="home-aside">
+            <section class="aside-card member-card">
+              <div class="aside-card-head"><span>SEU ESPAÇO</span><span class="live-dot"></span></div>
+              <div class="member-avatar" id="memberAvatarLarge">E</div>
+              <h3 id="memberAsideName">Membro Elite</h3>
+              <p>Seu ambiente de aprendizado</p>
+              <div class="member-level"><span>STATUS DA CONTA</span><b><i></i> ATIVO</b></div>
+            </section>
+            <section class="aside-card">
+              <div class="aside-card-head"><span>RESUMO DA JORNADA</span><span>✧</span></div>
+              <div class="aside-stat"><span>Cursos disponíveis</span><b id="asideCourseCount">06</b></div>
+              <div class="aside-stat"><span>Aulas concluídas</span><b id="asideLessonCount">06</b></div>
+              <div class="aside-stat"><span>Progresso médio</span><b id="asideProgress">24%</b></div>
+              <div class="aside-progress"><i id="asideProgressBar"></i></div>
+            </section>
+            <section class="aside-card activity-card">
+              <div class="aside-card-head"><span>COMECE POR AQUI</span><span>↗</span></div>
+              <button class="quick-link" data-course="metodo-lp"><span class="quick-icon">▶</span><span><b>Método LP</b><small>Continue seu treinamento</small></span><i>↗</i></button>
+              <button class="quick-link" data-view="courses"><span class="quick-icon">▦</span><span><b>Explorar cursos</b><small>Veja sua biblioteca completa</small></span><i>↗</i></button>
+              <button class="quick-link" data-view="library"><span class="quick-icon">▤</span><span><b>Materiais de apoio</b><small>Acesse seus arquivos</small></span><i>↗</i></button>
+            </section>
+            <section class="aside-tip"><span>✦ DICA ELITE</span><p>Reserve alguns minutos por dia para avançar nas suas aulas. A consistência faz a diferença.</p></section>
+          </aside>
         </div>
         <footer>© 2026 ELITE ACADEMY <span>FEITO PARA QUEM VAI ALÉM <b>✳</b></span></footer>
       </section>
