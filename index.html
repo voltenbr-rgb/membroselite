@@ -3,194 +3,238 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080d0c">
+  <meta name="theme-color" content="#0e0f12">
   <meta name="description" content="Área de membros premium — Elite Academy">
   <title>ELITE — Área de membros</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Ícones (traço) reutilizados pela página e pelo app.js -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/></symbol>
+      <symbol id="i-courses" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="m10 8.5 4.5 2.5-4.5 2.5z"/><path d="M8 21h8"/></symbol>
+      <symbol id="i-library" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-progress" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="m5 15 4-4 3 3 7-7"/><path d="M15 7h4v4"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></symbol>
+      <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+      <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.3"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h10"/></symbol>
+      <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol>
+    </defs>
+  </svg>
+
+  <!-- ===================== LOGIN ===================== -->
   <div id="loginView" class="login-screen">
-    <button class="admin-trigger login-admin-trigger" id="adminTrigger" title="Área Master" aria-label="Abrir acesso à Área Master">⚙</button>
-    <div class="login-glow"></div>
-    <div class="login-card">
-      <div class="brand-mark"><span class="brand-icon">✳</span><span>ELITE<span class="green">.</span></span></div>
-      <div class="eyebrow"><i></i> AMBIENTE EXCLUSIVO</div>
-      <h1>Seu próximo nível<br><span>começa aqui.</span></h1>
-      <p class="muted">Entre na sua área de membros e continue de onde parou.</p>
-      <form id="loginForm">
-        <label for="memberName">Seu nome</label>
-        <input id="memberName" autocomplete="name" placeholder="Digite seu nome" required>
-        <label for="memberPassword">Senha de acesso</label>
-        <input id="memberPassword" type="password" inputmode="numeric" placeholder="••••" required>
-        <label for="memberPhone">Telefone <small>opcional</small></label>
-        <input id="memberPhone" type="tel" placeholder="(00) 00000-0000">
-        <button class="btn-primary full" type="submit">ACESSAR PLATAFORMA <span>↗</span></button>
-        <p id="loginError" class="error"></p>
-      </form>
-      <div class="login-foot"><span>◈</span> ACESSO PROTEGIDO <b>•</b> EXPERIÊNCIA PREMIUM</div>
+    <button class="admin-trigger login-admin-trigger" id="adminTrigger" title="Área Master" aria-label="Abrir acesso à Área Master"><svg class="ic"><use href="#i-settings"/></svg></button>
+    <div class="login-art" aria-hidden="true">
+      <img src="assets/elite-academy-cover.svg" alt="">
+      <div class="login-art-shade"></div>
+      <div class="login-art-copy">
+        <span class="pill pill-accent">ELITE ACADEMY</span>
+        <h2>Conhecimento que<br>vira resultado.</h2>
+        <p>Seus cursos, aulas e materiais em um só lugar.</p>
+      </div>
     </div>
-    <div class="login-side-note">CONHECIMENTO QUE<br>VIRA RESULTADO.</div>
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="brand"><span class="brand-icon">✳</span><span>ELITE<span class="accent">.</span></span></div>
+        <h1>Bem-vindo de volta</h1>
+        <p class="muted">Entre na sua área de membros e continue de onde parou.</p>
+        <form id="loginForm" novalidate>
+          <label for="memberName">Seu nome</label>
+          <input id="memberName" autocomplete="name" placeholder="Digite seu nome" required>
+          <label for="memberPassword">Senha de acesso</label>
+          <input id="memberPassword" type="password" inputmode="numeric" placeholder="••••" required>
+          <label for="memberPhone">Telefone <small>opcional</small></label>
+          <input id="memberPhone" type="tel" placeholder="(00) 00000-0000">
+          <button class="btn btn-primary full" type="submit">Acessar plataforma</button>
+          <p id="loginError" class="error" role="alert"></p>
+        </form>
+      </div>
+    </div>
   </div>
 
+  <!-- ===================== APP ===================== -->
   <div id="appView" class="app-shell hidden">
     <aside class="sidebar" id="sidebar">
-      <div class="brand"><span class="brand-icon">✳</span><span>ELITE<span class="green">.</span></span></div>
-      <div class="side-label">MENU PRINCIPAL</div>
-      <button class="nav-item active" data-view="home"><span>⌂</span> Visão geral</button>
-      <button class="nav-item" data-view="courses"><span>▤</span> Meus cursos</button>
-      <button class="nav-item" data-view="library"><span>▧</span> Biblioteca</button>
-      <div class="side-label side-label-spaced">ACOMPANHAMENTO</div>
-      <div class="sidebar-feature"><div class="sidebar-feature-icon">✦</div><div><b>Minha evolução</b><small>Continue sua jornada</small></div><span>↗</span></div>
+      <div class="brand"><span class="brand-icon">✳</span><span>ELITE<span class="accent">.</span></span></div>
+      <nav class="side-nav" aria-label="Menu principal">
+        <button class="nav-item active" data-view="home"><svg class="ic"><use href="#i-home"/></svg> Início</button>
+        <div class="nav-group open" id="coursesGroup">
+          <button class="nav-item" data-view="courses" id="coursesNav"><svg class="ic"><use href="#i-courses"/></svg> Cursos <svg class="ic caret"><use href="#i-chevron-down"/></svg></button>
+          <div class="sub-nav">
+            <button class="sub-item" data-filter="all">Todos os cursos</button>
+            <button class="sub-item" data-filter="progress">Em andamento</button>
+            <button class="sub-item" data-filter="done">Concluídos</button>
+            <button class="sub-item" data-filter="locked">Para desbloquear</button>
+          </div>
+        </div>
+        <button class="nav-item" data-view="library"><svg class="ic"><use href="#i-library"/></svg> Biblioteca</button>
+        <button class="nav-item" data-view="progress"><svg class="ic"><use href="#i-progress"/></svg> Minha evolução</button>
+      </nav>
       <div class="side-bottom">
-        <div class="side-label">SUA CONTA</div>
-        <button class="nav-item" id="profileButton"><span>◉</span> Meu perfil</button>
-        <button class="nav-item" id="logoutButton"><span>↪</span> Sair da conta</button>
-        <div class="sidebar-status"><span class="pulse"></span><div><b>AMBIENTE ELITE</b><small>Plataforma demonstrativa</small></div></div>
+        <button class="nav-item" id="profileButton"><svg class="ic"><use href="#i-user"/></svg> Meu perfil</button>
+        <button class="nav-item" id="masterNav"><svg class="ic"><use href="#i-settings"/></svg> Área Master</button>
+        <button class="nav-item" id="logoutButton"><svg class="ic"><use href="#i-logout"/></svg> Sair</button>
       </div>
     </aside>
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
 
     <main class="main-area">
       <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
-        <div class="breadcrumb">ÁREA DE MEMBROS <span>/</span> <b id="breadcrumbCurrent">INÍCIO</b></div>
-        <div class="top-search"><span>⌕</span><input type="search" placeholder="Buscar cursos, aulas e materiais..." aria-label="Buscar na plataforma"></div>
+        <button class="icon-btn mobile-menu" id="mobileMenu" aria-label="Abrir menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+        <label class="top-search"><svg class="ic"><use href="#i-search"/></svg><input id="searchInput" type="search" placeholder="Buscar cursos e aulas..." aria-label="Buscar na plataforma"></label>
         <div class="top-actions">
-          <button class="icon-button" title="Notificações">♧<i class="notification-dot"></i></button>
-          <div class="user-chip"><div class="avatar" id="userInitial">E</div><div><b id="userName">Aluno</b><small>Membro</small></div><span>⌄</span></div>
+          <button class="icon-btn" id="notifyButton" aria-label="Notificações"><svg class="ic"><use href="#i-bell"/></svg></button>
+          <div class="user-menu">
+            <button class="user-chip" id="userChip" aria-haspopup="true" aria-expanded="false"><span class="avatar" id="userInitial">E</span><span class="user-name" id="userName">Aluno</span><svg class="ic"><use href="#i-chevron-down"/></svg></button>
+            <div class="user-dropdown hidden" id="userDropdown">
+              <button data-action="profile"><svg class="ic"><use href="#i-user"/></svg> Meu perfil</button>
+              <button data-action="logout"><svg class="ic"><use href="#i-logout"/></svg> Sair da conta</button>
+            </div>
+          </div>
         </div>
       </header>
 
+      <!-- Início -->
       <section id="homePage" class="page">
-        <div class="welcome-row">
-          <div><div class="eyebrow"><i></i> SEU ESPAÇO DE EVOLUÇÃO</div><h1>Olá, <span id="welcomeName">Aluno</span> <span class="wave">✦</span></h1><p class="muted">O conhecimento certo, no momento certo. Vamos avançar?</p></div>
-          <div class="date-pill">◷ &nbsp; SUA JORNADA COMEÇA AGORA</div>
-        </div>
+        <div class="hero" id="hero"></div>
 
-        <div class="home-dashboard">
-          <div class="home-primary">
-            <div class="promo-grid" id="promoGrid">
-              <article class="promo promo-main">
-                <img class="promo-art" src="assets/elite-academy-cover.svg" alt="Elite Academy — conhecimento que transforma resultados">
-                <div class="promo-video-shade"></div>
-                <div class="promo-content promo-art-content">
-                  <span class="promo-tag">BEM-VINDO À ELITE ACADEMY</span>
-                  <h2>Seu próximo nível<br>começa <em>agora.</em></h2>
-                  <p>Aprenda, coloque em prática e transforme conhecimento em resultado.</p>
-                  <button class="text-link" data-course="metodo-lp">CONTINUAR NO MÉTODO LP <b>↗</b></button>
-                </div>
-                <div class="promo-number">01 <span>/ SUA JORNADA</span></div>
-              </article>
-              <article class="promo promo-purple"><span class="promo-tag">ESCALA & PERFORMANCE</span><div class="promo-symbol">⌘</div><h3>Digital<br>Scale Pro</h3><p>Estratégias para crescer com inteligência.</p><span class="promo-arrow">↗</span></article>
-              <article class="promo promo-blue"><span class="promo-tag">CRIATIVIDADE & MARCA</span><div class="promo-symbol">◈</div><h3>Design<br>Magnético</h3><p>Uma presença digital que se destaca.</p><span class="promo-arrow">↗</span></article>
-            </div>
-            <div class="section-heading"><div><div class="eyebrow">SUA BIBLIOTECA</div><h2>Continue aprendendo</h2></div><button class="subtle-link" data-view="courses">VER TODOS <span>↗</span></button></div>
-            <div class="course-grid" id="homeCourses"></div>
-            <div class="lower-grid">
-              <section class="panel progress-panel"><div class="panel-heading"><div><div class="eyebrow">SEU DESEMPENHO</div><h3>Ritmo de evolução</h3></div><span class="panel-icon">↗</span></div><div class="progress-content"><div class="progress-ring"><div><b id="progressPercent">24%</b><small>CONCLUÍDO</small></div></div><div><h4>Você está no caminho.</h4><p class="muted">Pequenos passos todos os dias constroem grandes resultados.</p><div class="mini-stats"><span><b id="completedLessons">6</b><small>AULAS VISTAS</small></span><span><b id="activeCourses">3</b><small>CURSOS ATIVOS</small></span></div></div></div></section>
-              <section class="panel quote-panel"><div class="quote-mark">“</div><p>O seu futuro é construído pelas decisões que você toma hoje.</p><span>— MENTALIDADE ELITE</span><div class="quote-decoration">✳</div></section>
-            </div>
+        <div class="row-head"><h2>Continue assistindo</h2><button class="see-all" data-goto-filter="progress">Ver todos <svg class="ic"><use href="#i-chevron-right"/></svg></button></div>
+        <div class="card-row" id="rowContinue"></div>
+
+        <div class="home-split">
+          <div class="home-split-main">
+            <div class="row-head"><h2>Desbloqueie mais</h2><button class="see-all" data-goto-filter="locked">Ver todos <svg class="ic"><use href="#i-chevron-right"/></svg></button></div>
+            <div class="card-row card-row-tall" id="rowLocked"></div>
           </div>
-          <aside class="home-aside">
-            <section class="aside-card member-card">
-              <div class="aside-card-head"><span>SEU ESPAÇO</span><span class="live-dot"></span></div>
-              <div class="member-avatar" id="memberAvatarLarge">E</div>
-              <h3 id="memberAsideName">Membro Elite</h3>
-              <p>Seu ambiente de aprendizado</p>
-              <div class="member-level"><span>STATUS DA CONTA</span><b><i></i> ATIVO</b></div>
-            </section>
-            <section class="aside-card journey-card">
-              <div class="aside-card-head"><span>RESUMO DA JORNADA</span><span>✧</span></div>
-              <div class="journey-overview">
-                <div class="journey-ring" id="journeyRing" style="--journey-progress:24%">
-                  <div class="journey-ring-inner"><b id="asideProgress">24%</b><small>GERAL</small></div>
-                </div>
-                <div class="journey-metrics">
-                  <div class="journey-metric"><span class="metric-dot green"></span><span>Cursos disponíveis</span><b id="asideCourseCount">06</b></div>
-                  <div class="journey-metric"><span class="metric-dot mint"></span><span>Aulas concluídas</span><b id="asideLessonCount">06</b></div>
-                  <div class="journey-metric"><span class="metric-dot gray"></span><span>Curso em destaque</span></div>
-                  <strong class="journey-current-course" id="asideCurrentCourse">Método LP</strong>
-                </div>
-              </div>
-              <div class="journey-caption">SEU PROGRESSO EM TODOS OS TREINAMENTOS</div>
-            </section>
-            <section class="aside-card activity-card">
-              <div class="aside-card-head"><span>COMECE POR AQUI</span><span>↗</span></div>
-              <button class="quick-link" data-course="metodo-lp"><span class="quick-icon">▶</span><span><b>Método LP</b><small>Continue seu treinamento</small></span><i>↗</i></button>
-              <button class="quick-link" data-view="courses"><span class="quick-icon">▦</span><span><b>Explorar cursos</b><small>Veja sua biblioteca completa</small></span><i>↗</i></button>
-              <button class="quick-link" data-view="library"><span class="quick-icon">▤</span><span><b>Materiais de apoio</b><small>Acesse seus arquivos</small></span><i>↗</i></button>
-            </section>
-            <section class="aside-tip"><span>✦ DICA ELITE</span><p>Reserve alguns minutos por dia para avançar nas suas aulas. A consistência faz a diferença.</p></section>
+          <aside class="home-split-side">
+            <div class="row-head"><h2>Seu progresso</h2><button class="see-all" data-view="progress">Ver tudo <svg class="ic"><use href="#i-chevron-right"/></svg></button></div>
+            <div class="side-panel" id="progressList"></div>
           </aside>
         </div>
-        <footer>© 2026 ELITE ACADEMY <span>FEITO PARA QUEM VAI ALÉM <b>✳</b></span></footer>
+        <footer>© 2026 ELITE ACADEMY <span>Feito para quem vai além</span></footer>
       </section>
 
+      <!-- Cursos -->
       <section id="coursesPage" class="page hidden">
-        <div class="page-intro"><div class="eyebrow"><i></i> CONTEÚDO EXCLUSIVO</div><h1>Meus <span>cursos.</span></h1><p class="muted">Acesse suas trilhas, acompanhe as aulas e evolua no seu ritmo.</p></div>
-        <div class="filter-row"><span>MINHA BIBLIOTECA</span><span id="courseCount">03 TREINAMENTOS</span></div>
-        <div class="course-grid all-courses" id="allCourses"></div>
-        <footer>© 2026 ELITE ACADEMY <span>FEITO PARA QUEM VAI ALÉM <b>✳</b></span></footer>
+        <div class="page-head">
+          <div><h1>Cursos</h1><p class="muted" id="courseCount">0 treinamentos</p></div>
+          <div class="chips" id="filterChips">
+            <button class="chip active" data-filter="all">Todos</button>
+            <button class="chip" data-filter="progress">Em andamento</button>
+            <button class="chip" data-filter="done">Concluídos</button>
+            <button class="chip" data-filter="locked">Para desbloquear</button>
+          </div>
+        </div>
+        <div class="card-grid" id="allCourses"></div>
+        <p class="empty-note hidden" id="coursesEmpty">Nenhum curso encontrado.</p>
       </section>
 
+      <!-- Curso -->
       <section id="coursePage" class="page hidden">
-        <button class="back-link" id="backCourses">← VOLTAR AOS CURSOS</button>
+        <button class="back-link" id="backCourses"><svg class="ic"><use href="#i-arrow-left"/></svg> Voltar aos cursos</button>
         <div id="courseDetail"></div>
       </section>
 
+      <!-- Biblioteca -->
       <section id="libraryPage" class="page hidden">
-        <div class="page-intro"><div class="eyebrow"><i></i> MATERIAIS DE APOIO</div><h1>Sua <span>biblioteca.</span></h1><p class="muted">Materiais, guias e recursos para acompanhar seus estudos.</p></div>
+        <div class="page-head"><div><h1>Biblioteca</h1><p class="muted">Materiais, guias e PDFs dos seus cursos.</p></div></div>
         <div id="libraryContent" class="library-grid"></div>
+      </section>
+
+      <!-- Evolução -->
+      <section id="progressPage" class="page hidden">
+        <div class="page-head"><div><h1>Minha evolução</h1><p class="muted">Acompanhe o seu avanço em cada treinamento.</p></div></div>
+        <div class="stats-row" id="statsRow"></div>
+        <div class="side-panel progress-full" id="progressFull"></div>
       </section>
     </main>
   </div>
 
+  <!-- ===================== MODAIS ===================== -->
   <div id="masterLoginModal" class="modal-backdrop hidden">
-    <div class="modal master-login-modal">
-      <button class="modal-close" data-close="masterLoginModal">×</button>
-      <div class="eyebrow"><i></i> ACESSO RESTRITO</div><h2>Área <span>Master.</span></h2>
+    <div class="modal master-login-modal" role="dialog" aria-modal="true" aria-labelledby="masterTitle">
+      <button class="modal-close" data-close="masterLoginModal" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
+      <span class="pill pill-accent">ACESSO RESTRITO</span>
+      <h2 id="masterTitle">Área Master</h2>
       <p class="muted">Entre para administrar cursos, módulos e aulas da ELITE Academy.</p>
       <label for="masterPassword">Senha administrativa</label>
       <input id="masterPassword" type="password" inputmode="numeric" placeholder="Digite sua senha">
-      <p id="masterLoginError" class="error"></p>
-      <button class="btn-primary full" id="masterLoginButton">ENTRAR NO MASTER ↗</button>
+      <p id="masterLoginError" class="error" role="alert"></p>
+      <button class="btn btn-primary full" id="masterLoginButton">Entrar no Master</button>
     </div>
   </div>
 
   <div id="adminModal" class="modal-backdrop hidden">
-    <div class="modal admin-modal">
-      <button class="modal-close" data-close="adminModal">×</button>
-      <div class="eyebrow"><i></i> CONFIGURAÇÃO DA PLATAFORMA</div><h2>Painel de <span>gestão.</span></h2>
-      <p class="muted">Central de administração: organize a vitrine, os módulos, as aulas e os acessos.</p>
+    <div class="modal admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <button class="modal-close" data-close="adminModal" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
+      <span class="pill pill-accent">CONFIGURAÇÃO DA PLATAFORMA</span>
+      <h2 id="adminTitle">Painel de gestão</h2>
+      <p class="muted">Organize a vitrine, os módulos, as aulas e os acessos.</p>
       <div class="admin-tabs"><button class="active" data-tab="contentTab">Aulas e módulos</button><button data-tab="courseTab">Criar curso</button><button data-tab="manageTab">Gerenciar cursos</button></div>
       <div id="contentTab" class="admin-tab">
-        <label>Curso</label><select id="adminCourse"></select>
-        <label>Nome do módulo</label><input id="adminModule" placeholder="Ex.: Módulo 01 — Comece aqui">
-        <label>Título da aula / material</label><input id="adminTitle" placeholder="Ex.: Introdução ao método">
-        <label>Tipo de conteúdo</label><select id="adminType"><option value="video">Vídeo (link)</option><option value="pdf">PDF / material</option><option value="text">Texto / aula escrita</option></select>
-        <label>Link do vídeo ou arquivo</label><input id="adminUrl" placeholder="Cole o link do YouTube, Vimeo ou arquivo hospedado">
-        <label>Texto ou descrição <small>opcional</small></label><textarea id="adminBody" rows="3" placeholder="Descrição, conteúdo da aula ou instruções..."></textarea>
-        <button class="btn-primary full" id="addContent">SALVAR CONTEÚDO ↗</button>
+        <label for="adminCourse">Curso</label><select id="adminCourse"></select>
+        <label for="adminModule">Nome do módulo</label><input id="adminModule" placeholder="Ex.: Módulo 01 — Comece aqui">
+        <label for="adminTitle2">Título da aula / material</label><input id="adminTitle2" placeholder="Ex.: Introdução ao método">
+        <label for="adminType">Tipo de conteúdo</label><select id="adminType"><option value="video">Vídeo (link)</option><option value="pdf">PDF / material</option><option value="text">Texto / aula escrita</option></select>
+        <label for="adminUrl">Link do vídeo ou arquivo</label><input id="adminUrl" placeholder="Cole o link do YouTube, Vimeo ou arquivo hospedado">
+        <label for="adminBody">Texto ou descrição <small>opcional</small></label><textarea id="adminBody" rows="3" placeholder="Descrição, conteúdo da aula ou instruções..."></textarea>
+        <button class="btn btn-primary full" id="addContent">Salvar conteúdo</button>
       </div>
       <div id="courseTab" class="admin-tab hidden">
-        <label>Nome do novo curso</label><input id="newCourseName" placeholder="Ex.: Mentoria de Vendas">
-        <label>Descrição curta</label><input id="newCourseDesc" placeholder="O que o aluno vai aprender?">
-        <label>URL da capa (opcional)</label><input id="newCourseCover" placeholder="https://...imagem-da-capa.jpg"><label>Link do checkout (opcional)</label><input id="newCourseCheckout" placeholder="https://...checkout"><label>Cor de destaque</label><select id="newCourseColor"><option value="green">Verde neon</option><option value="purple">Roxo</option><option value="blue">Azul</option><option value="orange">Laranja</option></select>
-        <label class="admin-check"><input id="newCourseLocked" type="checkbox" checked> Criar como bloqueado (curso à venda)</label><button class="btn-primary full" id="addCourse">CRIAR CURSO ↗</button>
+        <label for="newCourseName">Nome do novo curso</label><input id="newCourseName" placeholder="Ex.: Mentoria de Vendas">
+        <label for="newCourseDesc">Descrição curta</label><input id="newCourseDesc" placeholder="O que o aluno vai aprender?">
+        <label for="newCourseCover">URL da capa <small>opcional</small></label><input id="newCourseCover" placeholder="https://...imagem-da-capa.jpg">
+        <label for="newCourseCheckout">Link do checkout <small>opcional</small></label><input id="newCourseCheckout" placeholder="https://...checkout">
+        <label for="newCourseColor">Cor de destaque</label><select id="newCourseColor"><option value="green">Verde neon</option><option value="purple">Roxo</option><option value="blue">Azul</option><option value="orange">Laranja</option></select>
+        <label class="admin-check"><input id="newCourseLocked" type="checkbox" checked> Criar como bloqueado (curso à venda)</label>
+        <button class="btn btn-primary full" id="addCourse">Criar curso</button>
       </div>
       <div id="manageTab" class="admin-tab hidden"><div id="adminCourseManager"></div></div>
-      <div class="admin-note">ⓘ Etapa de protótipo: neste momento os dados ficam neste navegador. A conexão segura com D1 e R2 será ativada na próxima etapa.</div>
+      <div class="admin-note">Etapa de protótipo: os dados ficam neste navegador. A conexão segura com banco de dados será ativada na próxima etapa.</div>
     </div>
   </div>
 
   <div id="paymentModal" class="modal-backdrop hidden">
-    <div class="modal payment-modal"><button class="modal-close" data-close="paymentModal">×</button><div class="lock-large">♙</div><div class="eyebrow">DESBLOQUEIE NOVAS POSSIBILIDADES</div><h2>Seu próximo curso<br><span>está a um passo.</span></h2><p class="muted">Esta é uma simulação de checkout. Aqui você poderá apresentar os planos, formas de pagamento e direcionar o aluno para seu checkout oficial.</p><div class="checkout-card"><span>ACESSO COMPLETO</span><b id="lockedCourseName">Curso Premium</b><small>Pagamento único • Acesso conforme oferta</small><div class="checkout-price">R$ 97<span>,00</span></div><button class="btn-primary full" id="simulatePay">SIMULAR INTERESSE ↗</button></div><p class="tiny-note" id="paymentFeedback">Nenhuma cobrança será realizada nesta demonstração.</p></div>
+    <div class="modal payment-modal" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+      <button class="modal-close" data-close="paymentModal" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
+      <div class="lock-large"><svg class="ic"><use href="#i-lock"/></svg></div>
+      <h2 id="payTitle">Desbloqueie <span id="lockedCourseName">Curso Premium</span></h2>
+      <p class="muted">Garanta o acesso completo a este treinamento pelo checkout oficial.</p>
+      <button class="btn btn-primary full" id="simulatePay">Ir para compra</button>
+      <p class="tiny-note" id="paymentFeedback"></p>
+    </div>
   </div>
 
-  <div id="profileModal" class="modal-backdrop hidden"><div class="modal"><button class="modal-close" data-close="profileModal">×</button><div class="eyebrow">SUA CONTA</div><h2>Perfil do <span>membro.</span></h2><p class="muted">Você está acessando como <b id="profileName"></b>.</p><p class="admin-note">Protótipo visual — o cadastro e a autenticação reais serão conectados na próxima etapa.</p></div></div>
-  <div id="toast" class="toast"></div>
+  <div id="profileModal" class="modal-backdrop hidden">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <button class="modal-close" data-close="profileModal" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
+      <div class="profile-head"><span class="avatar avatar-lg" id="profileInitial">E</span><div><h2 id="profileTitle"><span id="profileName"></span></h2><p class="muted" id="profilePhone">Membro ELITE</p></div></div>
+      <p class="admin-note">Protótipo visual — cadastro e autenticação reais serão conectados na próxima etapa.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
   <script src="app.js"></script>
 </body>
 </html>
