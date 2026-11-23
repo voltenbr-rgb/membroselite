@@ -2,8 +2,8 @@
    - Páginas e arquivos do site: tenta a internet primeiro (sempre a versão nova);
      sem internet, usa a cópia guardada.
    - /api (login, progresso, conteúdo): nunca guarda em cache. */
-const VERSION = 'elite-v1';
-const SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/admin.js', '/manifest.webmanifest',
+const VERSION = 'elite-v2';
+const SHELL = ['/', '/index.html', '/styles.css', '/data.js', '/app.js', '/admin.js', '/manifest.webmanifest',
   '/assets/elite-academy-cover.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png', '/icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
@@ -31,11 +31,13 @@ self.addEventListener('fetch', e => {
 });
 async function networkFirst(req, isPage){
   const cache = await caches.open(VERSION);
+  const path = new URL(req.url).pathname;
+  const key = isPage ? (path === '/' || path === '/index.html' ? '/index.html' : path) : req;
   try {
     const res = await fetch(req);
-    if(res.ok) cache.put(isPage ? '/index.html' : req, res.clone());
+    if(res.ok && !res.redirected) cache.put(key, res.clone());
     return res;
   } catch(err){
-    return (await cache.match(isPage ? '/index.html' : req, {ignoreSearch: true})) || (isPage ? cache.match('/', {ignoreSearch: true}) : Response.error());
+    return (await cache.match(key, {ignoreSearch: true})) || (isPage ? (await cache.match('/index.html')) || Response.error() : Response.error());
   }
 }

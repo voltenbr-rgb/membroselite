@@ -26,6 +26,7 @@ function closeAdmin(){
 function renderAdmin(){
   const cur = admCourse(); ADM.courseId = cur?.id || null;
   $('#admSide').innerHTML = `
+    <button class="adm-course adm-students-btn${ADM.view === 'store' ? ' active' : ''}" data-adm="store"><span class="adm-course-art adm-ic-art">${ic('globe')}</span><span class="adm-course-txt"><b>Vitrine</b><small>Link de vendas e checkout</small></span></button>
     ${API.on ? `<button class="adm-course adm-students-btn${ADM.view === 'students' ? ' active' : ''}" data-adm="students"><span class="adm-course-art adm-ic-art">${ic('user')}</span><span class="adm-course-txt"><b>Alunos</b><small>Acessos e progresso</small></span></button>` : ''}
     <div class="adm-side-head"><span class="kicker">Seus cursos</span><span class="muted">${state.courses.length}</span></div>
     <div class="adm-courses">${state.courses.map(c => `
@@ -37,7 +38,7 @@ function renderAdmin(){
   const banner = !API.on
     ? `<div class="adm-banner">${ic('shield')}<span><b>Modo demonstração.</b> O banco de dados não respondeu, então as alterações ficam salvas só neste navegador.</span></div>`
     : API.contentEmpty ? `<div class="adm-banner warn">${ic('upload')}<span><b>O banco ainda não tem cursos salvos.</b> Os alunos veem os cursos de exemplo até você salvar.</span><button class="btn btn-primary" data-adm="publish">Salvar estes cursos no banco</button></div>` : '';
-  $('#admMain').innerHTML = banner + (ADM.view === 'students' ? studentsView() : cur ? courseEditor(cur) : '<div class="empty">Crie seu primeiro curso.</div>');
+  $('#admMain').innerHTML = banner + (ADM.view === 'students' ? studentsView() : ADM.view === 'store' ? storeView() : cur ? courseEditor(cur) : '<div class="empty">Crie seu primeiro curso.</div>');
 }
 
 function courseEditor(c){
@@ -253,6 +254,11 @@ $('#adminPanel').addEventListener('click', e => {
   if(d.admCourse){ ADM.view = 'course'; ADM.courseId = d.admCourse; ADM.tab = 'aulas'; ADM.confirm = null; renderAdmin(); $('#admMain').scrollTop = 0; return; }
   if(d.admTab){ ADM.tab = d.admTab; renderAdmin(); return; }
   if(d.adm === 'publish'){ saveContent().then(ok => { if(ok){ toast('Cursos salvos no banco!'); renderAdmin(); } }); return; }
+  if(d.adm === 'store'){ ADM.view = 'store'; renderAdmin(); return; }
+  if(d.adm === 'copy-store'){ copyText(storeUrl(), 'Link da vitrine copiado!'); return; }
+  if(d.storeCopy){ copyText(storeUrl() + '#p/' + encodeURIComponent(d.storeCopy), 'Link do curso copiado!'); return; }
+  if(d.storeShow){ const x = findCourse(d.storeShow); x.showInStore = x.showInStore === false; admSave(x.showInStore ? 'Curso aparece na vitrine.' : 'Curso escondido da vitrine.'); return; }
+  if(d.storeFeat){ const x = findCourse(d.storeFeat), on = !x.featured; state.courses.forEach(k => { k.featured = false; }); x.featured = on; admSave(on ? `${x.name} é o destaque da vitrine.` : 'Destaque removido.'); return; }
   if(d.adm === 'students'){ ADM.view = 'students'; ADM.created = null; renderAdmin(); loadUsers(); return; }
   if(d.adm === 'gen-pass'){ const i = $('#nuPass'); i.value = genPass(); i.type = 'text'; i.focus(); return; }
   if(d.adm === 'copy-access'){ copyText(accessMessage(ADM.created), 'Mensagem de acesso copiada!'); return; }
@@ -328,7 +334,16 @@ $('#adminPanel').addEventListener('input', e => {
   if(S && t.dataset.link){ const [i, f] = t.dataset.link.split(':'); S.draft.links[+i][f] = t.value; $('#lsLinkPreview').innerHTML = linkPreview(); }
 });
 $('#adminPanel').addEventListener('change', e => {
-  const t = e.target, c = admCourse(); if(!c) return;
+  const t = e.target;
+  if(t.dataset.storeField){
+    const [id, f] = t.dataset.storeField.split(':'), x = findCourse(id); if(!x) return;
+    const v = t.value.trim();
+    if(f === 'checkoutUrl' && v && !safeUrl(v)){ toast('O link do checkout precisa começar com https://'); t.focus(); return; }
+    x[f] = v; saveContent(); if(state.user) render();
+    const row = t.closest('.store-row'); if(row) row.querySelector('.store-status').outerHTML = storeStatus(x);
+    toast(f === 'price' ? 'Preço salvo.' : 'Link do checkout salvo.'); return;
+  }
+  const c = admCourse(); if(!c) return;
   if(t.dataset.admModname != null){ const v = t.value.trim(); if(v){ c.modules[+t.dataset.admModname].name = v; saveContent(); if(state.user) render(); toast('Nome do módulo salvo.'); } else t.value = c.modules[+t.dataset.admModname].name; }
 });
 $('#adminPanel').addEventListener('keydown', e => {
@@ -437,3 +452,38 @@ async function resetPassword(id){
   } catch(err){ toast(err.message); }
 }
 document.addEventListener('content-saved', () => { if(!$('#adminPanel').classList.contains('hidden') && $('.adm-banner.warn')) renderAdmin(); });
+
+/* ---------------- vitrine (loja pública) ---------------- */
+function storeUrl(){ return location.origin + '/vitrine'; }
+function storeStatus(c){
+  const ok = !!safeUrl(c.checkoutUrl);
+  return `<span class="store-status tag ${ok ? 'tag-ok' : ''}">${ok ? ic('check') + ' Pronto para vender' : ic('clock') + ' Falta o link do checkout'}</span>`;
+}
+function storeView(){
+  const shown = state.courses.filter(c => c.showInStore !== false);
+  return `
+    <div class="adm-head"><div><span class="kicker">Vendas</span><h1 class="display">Vitrine</h1><p class="muted">${plural(shown.length, 'curso aparece', 'cursos aparecem')} na vitrine pública Membros Elite.</p></div></div>
+    <div class="store-link-card">
+      <div class="store-link-info"><span class="kicker">Link da vitrine</span><code>${esc(storeUrl())}</code><p class="muted">Divulgue este link nas redes, no WhatsApp e nos anúncios. Ele mostra todos os cursos marcados abaixo, com preço e botão de compra.</p></div>
+      <div class="store-link-actions"><button class="btn btn-primary" data-adm="copy-store">${ic('copy')} Copiar link</button><a class="btn btn-ghost" href="/vitrine" target="_blank" rel="noopener">${ic('external')} Abrir vitrine</a></div>
+    </div>
+    <div class="adm-banner">${ic('lock')}<span><b>Como funciona a compra hoje:</b> o botão "Comprar agora" leva ao checkout que você colar aqui (Hotmart, Kiwify, Mercado Pago...). Depois do pagamento, cadastre o comprador em <b>Alunos</b>. A liberação automática por compra entra na próxima etapa.</span></div>
+    <div class="store-rows">${state.courses.map(c => {
+      const show = c.showInStore !== false;
+      return `<div class="store-row${show ? '' : ' off'}">
+        <div class="store-row-head">
+          <span class="adm-course-art">${art(c)}</span>
+          <div class="store-row-name"><b>${esc(c.name)}</b><small>${c.locked ? 'Bloqueado na área de membros' : 'Liberado na área de membros'} · ${storeStatus(c)}</small></div>
+          <div class="store-row-toggles">
+            <button class="switch${show ? ' on' : ''}" data-store-show="${esc(c.id)}" role="switch" aria-checked="${show}"><span class="switch-dot"></span><span>Na vitrine</span></button>
+            <button class="btn ${c.featured ? 'btn-primary' : 'btn-ghost'} star-btn" data-store-feat="${esc(c.id)}" aria-pressed="${!!c.featured}" title="Mostrar em destaque no topo da vitrine">${ic('star')}<span>${c.featured ? 'Destaque' : 'Destacar'}</span></button>
+          </div>
+        </div>
+        <div class="store-row-fields">
+          <div class="store-price"><label for="sp-${esc(c.id)}">Preço <small>R$</small></label><input id="sp-${esc(c.id)}" data-store-field="${esc(c.id)}:price" value="${esc(c.price || '')}" placeholder="97,00" inputmode="decimal"></div>
+          <div class="store-checkout"><label for="sc-${esc(c.id)}">Link do checkout</label><input id="sc-${esc(c.id)}" data-store-field="${esc(c.id)}:checkoutUrl" value="${esc(c.checkoutUrl || '')}" placeholder="https://pay.hotmart.com/..." inputmode="url"></div>
+          <button class="btn btn-line store-copy" data-store-copy="${esc(c.id)}" title="Link direto para este curso na vitrine">${ic('link')} Link do curso</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+}

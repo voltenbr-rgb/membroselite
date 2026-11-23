@@ -7,6 +7,7 @@
    POST   /api/login              e-mail + senha
    POST   /api/logout
    PATCH  /api/me                 nome, telefone, troca de senha
+   GET    /api/vitrine            vitrine pública (resumo dos cursos à venda)
    GET    /api/content            cursos (aluno: sem as aulas dos cursos bloqueados)
    PUT    /api/content            salva cursos (Master)
    GET    /api/progress           dados do aluno (concluídas, anotações...)
@@ -106,6 +107,15 @@ function forStudent(courses){
     : c);
 }
 
+function storeSummary(courses){
+  return courses.filter(c => c.showInStore !== false).map(c => ({
+    id: c.id, name: c.name, desc: c.desc || '', tag: c.tag || '', color: c.color || 'green', code: c.code || '',
+    coverUrl: c.coverUrl || '', price: c.price || '', checkoutUrl: c.checkoutUrl || '', trailerUrl: c.trailerUrl || '',
+    learn: c.learn || [], featured: !!c.featured,
+    modules: (c.modules || []).map(m => ({name: m.name, lessons: (m.lessons || []).length, min: (m.lessons || []).reduce((a, l) => a + (+l.min || 0), 0)}))
+  }));
+}
+
 /* ---------------- roteador ---------------- */
 export async function onRequest(context){
   const {request, env, params} = context;
@@ -149,6 +159,13 @@ export async function onRequest(context){
       const token = readCookie(request);
       if(token) await db.prepare(`DELETE FROM sessions WHERE token_hash = ?`).bind(await sha256(token)).run();
       return json({ok: true}, 200, {'set-cookie': cookieFor(null, request)});
+    }
+
+    // vitrine pública: só o resumo dos cursos (sem links das aulas)
+    if(path === '/vitrine' && method === 'GET'){
+      const row = await db.prepare(`SELECT data FROM content WHERE key = 'courses'`).first();
+      if(!row) return json({courses: null});
+      return json({courses: storeSummary(JSON.parse(row.data))});
     }
 
     // ---- daqui para baixo, só com login ----

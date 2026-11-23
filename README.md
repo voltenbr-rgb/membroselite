@@ -16,6 +16,13 @@
 - Alunos não recebem os links das aulas de cursos bloqueados.
 - Se a API não responder (por exemplo, abrindo o `index.html` direto no computador), o site entra em **modo demonstração**: senha `1989` e tudo salvo só no navegador.
 
+## Vitrine (loja pública)
+- Endereço: **/vitrine** (ex.: `https://SEU-SITE.pages.dev/vitrine`). Não precisa de login.
+- Mostra os cursos marcados "Na vitrine" no Master, com preço, detalhes e botão **Comprar agora** (abre o link do checkout).
+- Link direto de cada curso: `/vitrine#p/ID-DO-CURSO` (botão "Link do curso" no Master).
+- No Master → **Vitrine**: copiar o link, definir preço e checkout de cada curso, mostrar/esconder e escolher o destaque.
+- Por enquanto, depois da compra o Master cadastra o aluno em **Alunos**. A liberação automática por compra é a próxima etapa.
+
 ## O que já está no protótipo
 - **Início "Sua jornada"**: saudação, card "Continue de onde parou", números de progresso, cursos em pôster, cursos para desbloquear e nível do aluno.
 - **Cursos em formato de série**: módulos como temporadas e aulas como episódios, com duração e marca de concluída.
