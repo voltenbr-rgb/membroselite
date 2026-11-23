@@ -117,6 +117,25 @@ function embedUrl(url){
   return u;
 }
 
+function ytId(url){ const m = String(url || '').match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{6,})/); return m ? m[1] : ''; }
+function ytThumb(url){ const id = ytId(url); return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : ''; }
+function isVideoUrl(url){ return !!(ytId(url) || /vimeo\.com\/(?:video\/)?\d+/.test(String(url || ''))); }
+// botões de uma aula: arquivos e sites cadastrados no Master (+ PDF das aulas antigas)
+function resources(l){
+  const out = (l.links || []).filter(x => safeUrl(x.url)).map(x => ({kind: x.kind === 'site' ? 'site' : 'file', label: x.label || (x.kind === 'site' ? 'Acessar site' : 'Baixar arquivo'), url: x.url}));
+  if(l.type === 'pdf' && safeUrl(l.url)) out.unshift({kind: 'file', label: 'Abrir material', url: l.url});
+  return out;
+}
+function hostOf(u){ try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e){ return ''; } }
+function resButtons(list, cls = ''){
+  if(!list.length) return '';
+  return `<div class="res-buttons ${cls}">${list.map(r => `<a class="res-btn res-${r.kind}" href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener">
+    <span class="res-ic">${ic(r.kind === 'site' ? 'globe' : 'download')}</span>
+    <span class="res-txt"><b>${esc(r.label)}</b><small>${r.kind === 'site' ? esc(hostOf(r.url) || 'Abrir site') : 'Arquivo'}</small></span>
+    ${ic('external', 'res-go')}</a>`).join('')}</div>`;
+}
+function lessonArt(c, l){ const t = l && l.type === 'video' ? ytThumb(l.url) : ''; return t ? `<div class="art" style="background-image:url('${t}')"></div>` : art(c); }
+
 /* ------------------------------------------------------------------
    Regras: progresso, sequência, nível
    ------------------------------------------------------------------ */
@@ -228,7 +247,7 @@ function pageHome(){
     const href = `#/aula/${encodeURIComponent(r.c.id)}/${r.n.mi}/${r.n.li}`;
     const started = s.done > 0;
     resume = `<section class="resume">
-      <a class="resume-media" href="${href}" aria-label="Assistir ${esc(r.n.l.title)}">${art(r.c)}
+      <a class="resume-media" href="${href}" aria-label="Assistir ${esc(r.n.l.title)}">${lessonArt(r.c, r.n.l)}
         <div class="resume-tag"><span class="chip chip-glass">${ic(typeIcon(r.n.l.type))} ${typeLabel(r.n.l.type)}</span>${r.n.l.min ? `<span class="chip chip-glass">${ic('clock')} ${fmtMin(r.n.l.min)}</span>` : ''}</div>
         <span class="resume-play">${ic('play', 'ic-fill')}</span>
       </a>
@@ -337,9 +356,9 @@ function pageCourse(c){
           const k = key(c, sel, li), d = isDone(k);
           return `<a class="ep${d ? ' done' : ''}" href="#/aula/${encodeURIComponent(c.id)}/${sel}/${li}">
             <span class="ep-num">${pad(li + 1)}</span>
-            <span class="ep-thumb">${art(c)}<span class="ep-thumb-ic"><span>${ic(typeIcon(l.type), l.type === 'video' ? 'ic-fill' : '')}</span></span>${d ? '<span class="bar"><i style="width:100%"></i></span>' : ''}</span>
+            <span class="ep-thumb">${lessonArt(c, l)}<span class="ep-thumb-ic"><span>${ic(typeIcon(l.type), l.type === 'video' ? 'ic-fill' : '')}</span></span>${d ? '<span class="bar"><i style="width:100%"></i></span>' : ''}</span>
             <span class="ep-body"><h4>${esc(l.title)}</h4><p>${esc(l.body || typeLabel(l.type))}</p></span>
-            <span class="ep-side">${l.min ? fmtMin(l.min) : typeLabel(l.type)}<span class="ep-check" aria-label="${d ? 'Concluída' : 'Não concluída'}">${d ? ic('check') : ''}</span></span>
+            <span class="ep-side">${resources(l).length ? `<span class="chip">${ic('link')} ${resources(l).length}</span>` : ''}${l.min ? fmtMin(l.min) : typeLabel(l.type)}<span class="ep-check" aria-label="${d ? 'Concluída' : 'Não concluída'}">${d ? ic('check') : ''}</span></span>
           </a>`;
         }).join('') || '<div class="empty">As aulas deste módulo serão adicionadas em breve.</div>'}</div>`
       : '<div class="empty">Este curso ainda não tem módulos. Eles aparecerão aqui assim que forem publicados.</div>'}
@@ -357,14 +376,14 @@ function pageLesson(c, mi, li){
   const pdf = l.type === 'pdf' ? safeUrl(l.url) : '';
   const media = emb
     ? `<div class="player"><iframe src="${esc(emb)}" title="${esc(l.title)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen loading="lazy"></iframe></div>`
-    : `<div class="player-alt">${art(c)}<span class="chip chip-glass">${ic(typeIcon(l.type))} ${typeLabel(l.type)}</span><p class="display">${esc(l.title)}</p>${pdf ? `<a class="btn btn-primary" href="${esc(pdf)}" target="_blank" rel="noopener">${ic('external')} Abrir material</a>` : '<span class="muted">Leia o conteúdo da aula logo abaixo.</span>'}</div>`;
+    : `<div class="player-alt">${art(c)}<span class="chip chip-glass">${ic(typeIcon(l.type))} ${typeLabel(l.type)}</span><p class="display">${esc(l.title)}</p><span class="muted">${resources(l).length ? 'Os materiais desta aula estão logo abaixo.' : 'Leia o conteúdo da aula logo abaixo.'}</span></div>`;
   const notes = state.notes[k] || '';
   const qs = state.questions[k] || [];
   const tabs = [['about', 'Sobre a aula', 'text'], ['materials', 'Materiais', 'file'], ['notes', 'Anotações', 'note'], ['qa', 'Dúvidas', 'chat']];
-  const mats = all.filter(x => x.mi === mi && x.l.type === 'pdf' && safeUrl(x.l.url));
+  const mats = all.filter(x => x.mi === mi).flatMap(x => resources(x.l).map(r => ({...r, lesson: x.l.title})));
   const panel = {
     about: `<p>${esc(l.body || 'Sem descrição para esta aula.')}</p>`,
-    materials: mats.length ? `<div style="display:flex;flex-direction:column;gap:10px">${mats.map(x => `<div class="material"><span class="material-ic">${ic('file')}</span><span><b>${esc(x.l.title)}</b><small>${esc(m.name)}</small></span><a class="btn btn-line" href="${esc(safeUrl(x.l.url))}" target="_blank" rel="noopener">${ic('external')} Abrir</a></div>`).join('')}</div>` : '<p class="muted">Este módulo não tem materiais para baixar.</p>',
+    materials: mats.length ? `<div style="display:flex;flex-direction:column;gap:10px">${mats.map(x => `<div class="material"><span class="material-ic">${ic(x.kind === 'site' ? 'globe' : 'download')}</span><span><b>${esc(x.label)}</b><small>${esc(x.lesson)}</small></span><a class="btn btn-line" href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener">${ic('external')} Abrir</a></div>`).join('')}</div>` : '<p class="muted">Este módulo não tem materiais nem links.</p>',
     notes: `<div class="notes-box"><label for="noteText" style="margin-top:0">Suas anotações desta aula</label><textarea id="noteText" data-note="${esc(k)}" placeholder="Escreva os pontos principais, ideias e próximos passos...">${esc(notes)}</textarea><p class="notes-status" id="noteStatus">${notes ? 'Salvo neste aparelho.' : 'As anotações são salvas automaticamente.'}</p></div>`,
     qa: `<form class="qa-form" data-qa="${esc(k)}"><input id="qaInput" placeholder="Escreva sua dúvida sobre esta aula" aria-label="Sua dúvida"><button class="btn btn-primary" type="submit">Enviar</button></form>
       <div class="qa-list">${qs.length ? qs.slice().reverse().map(q => `<div class="qa"><small>Você · ${esc(new Date(q.at).toLocaleDateString('pt-BR'))}</small>${esc(q.text)}</div>`).join('') : '<p class="muted">Nenhuma dúvida enviada ainda. No protótipo, as dúvidas ficam salvas só para você.</p>'}</div>`
@@ -388,6 +407,7 @@ function pageLesson(c, mi, li){
             ${next ? `<a class="btn btn-ghost" href="#/aula/${encodeURIComponent(c.id)}/${next.mi}/${next.li}">Próxima ${ic('chevron-right')}</a>` : ''}
           </div>
         </div>
+        ${resButtons(resources(l))}
         <div id="autoNext"></div>
         <div class="tabs" role="tablist">${tabs.map(([v, t, i]) => `<button class="${lessonTab === v ? 'active' : ''}" data-ltab="${v}" role="tab" aria-selected="${lessonTab === v}">${ic(i)} ${t}${v === 'qa' && qs.length ? ` (${qs.length})` : ''}</button>`).join('')}</div>
         <div class="tab-panel" id="lessonPanel">${panel[lessonTab] || panel.about}</div>
@@ -441,16 +461,15 @@ function pageOffer(c){
 
 function pageLibrary(){
   const items = [];
-  openCourses().forEach(c => lessonsOf(c).forEach(x => { if(x.l.type === 'pdf' && safeUrl(x.l.url)) items.push(x); }));
+  openCourses().forEach(c => lessonsOf(c).forEach(x => resources(x.l).forEach(r => items.push({...r, x}))));
   return `
-    <section class="page-title"><div><h1 class="display">Materiais</h1><p>Guias, checklists e PDFs dos seus cursos.</p></div></section>
-    ${items.length ? `<div class="lib-grid">${items.map(x => `<article class="lib-item">
-        <span class="material-ic">${ic('file')}</span>
-        <h3>${esc(x.l.title)}</h3><p>${esc(x.c.name)} · ${esc(x.m.name)}</p>
-        <a class="btn btn-line" href="${esc(safeUrl(x.l.url))}" target="_blank" rel="noopener">${ic('external')} Abrir material</a>
-      </article>`).join('')}</div>` : '<div class="empty">Seus materiais aparecerão aqui quando forem adicionados aos cursos.</div>'}`;
+    <section class="page-title"><div><h1 class="display">Materiais</h1><p>Arquivos e links de todas as suas aulas, num só lugar.</p></div></section>
+    ${items.length ? `<div class="lib-grid">${items.map(r => `<article class="lib-item">
+        <span class="material-ic">${ic(r.kind === 'site' ? 'globe' : 'download')}</span>
+        <h3>${esc(r.label)}</h3><p>${esc(r.x.c.name)} · ${esc(r.x.l.title)}</p>
+        <a class="btn btn-line" href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener">${ic('external')} ${r.kind === 'site' ? 'Acessar' : 'Abrir arquivo'}</a>
+      </article>`).join('')}</div>` : '<div class="empty">Os arquivos e links das aulas aparecerão aqui.</div>'}`;
 }
-
 function pageProgress(){
   const t = totals(), st = streak(), avg = t.total ? Math.round(t.done / t.total * 100) : 0;
   const set = new Set(state.days), today = todayISO();
@@ -693,8 +712,9 @@ function paintVideoBody(){
     <div class="vm-actions">
       <button class="btn ${d ? 'done' : 'btn-primary'}" data-act="vm-complete">${ic('check')} ${d ? 'Concluída' : 'Marcar como concluída'}</button>
       ${next ? `<a class="btn ${d ? 'btn-primary' : 'btn-ghost'}" href="${nextHref}" data-vm-next="1">Próxima aula ${ic('chevron-right')}</a>` : ''}
-      <a class="btn btn-line" href="#/aula/${encodeURIComponent(c.id)}/${mi}/${li}" data-vm-page="1">${ic('note')} Anotações e materiais</a>
-    </div>`;
+      <a class="btn btn-line" href="#/aula/${encodeURIComponent(c.id)}/${mi}/${li}" data-vm-page="1">${ic('note')} Anotações</a>
+    </div>
+    ${resButtons(resources(l), 'vm-res')}`;
 }
 function closeVideo(fromUser = true){
   const wrap = $('#videoModal');
@@ -754,68 +774,10 @@ function openMasterLogin(){
 function enterMaster(){
   if($('#masterPassword').value !== DEMO_PASSWORD){ $('#masterLoginError').textContent = 'Senha incorreta.'; return; }
   $('#masterLoginModal').classList.add('hidden');
-  fillAdminCourses(); renderAdminManager();
-  $('#adminModal').classList.remove('hidden');
+  openAdmin();
 }
 $('#masterLoginButton').addEventListener('click', enterMaster);
 $('#masterPassword').addEventListener('keydown', e => { if(e.key === 'Enter') enterMaster(); });
-$$('#adminModal .tabs button').forEach(b => b.addEventListener('click', () => {
-  $$('#adminModal .tabs button').forEach(x => x.classList.toggle('active', x === b));
-  $$('.admin-tab').forEach(x => x.classList.add('hidden'));
-  $('#' + b.dataset.tab).classList.remove('hidden');
-}));
-function fillAdminCourses(){
-  $('#adminCourse').innerHTML = state.courses.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
-  fillModules();
-}
-function fillModules(){
-  const c = findCourse($('#adminCourse').value);
-  $('#moduleList').innerHTML = c ? c.modules.map(m => `<option value="${esc(m.name)}"></option>`).join('') : '';
-}
-$('#adminCourse').addEventListener('change', fillModules);
-function afterAdminChange(){ save(); fillAdminCourses(); renderAdminManager(); if(state.user && !$('#appView').classList.contains('hidden')) render(); }
-function renderAdminManager(){
-  $('#adminCourseManager').innerHTML = state.courses.map(c => `<div class="admin-row"><div><b>${esc(c.name)}</b><small>${plural(c.modules.length, 'módulo', 'módulos')} · ${plural(lessonsOf(c).length, 'aula', 'aulas')} · ${c.locked ? 'Bloqueado' : 'Liberado'}</small></div>
-    <div class="btns"><button data-adm-toggle="${esc(c.id)}">${c.locked ? 'Liberar' : 'Bloquear'}</button><button data-adm-copy="${esc(c.id)}">Copiar link</button></div></div>`).join('');
-}
-$('#adminCourseManager').addEventListener('click', e => {
-  const b = e.target.closest('button'); if(!b) return;
-  if(b.dataset.admToggle){ const c = findCourse(b.dataset.admToggle); c.locked = !c.locked; afterAdminChange(); toast(c.locked ? 'Curso bloqueado.' : 'Curso liberado.'); }
-  if(b.dataset.admCopy){
-    const url = location.origin + location.pathname + '?curso=' + encodeURIComponent(b.dataset.admCopy);
-    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('Link copiado!')).catch(() => toast(url));
-  }
-});
-$('#addContent').addEventListener('click', () => {
-  const c = findCourse($('#adminCourse').value);
-  const title = $('#adminLessonTitle').value.trim();
-  if(!c || !title){ toast('Informe pelo menos o título da aula.'); return; }
-  const mName = $('#adminModule').value.trim() || 'Módulo 01 — Conteúdos';
-  let m = c.modules.find(x => x.name === mName);
-  if(!m){ m = {name: mName, lessons: []}; c.modules.push(m); }
-  const min = parseInt($('#adminDuration').value, 10);
-  m.lessons.push({title, type: $('#adminType').value, url: $('#adminUrl').value.trim(), body: $('#adminBody').value.trim(), ...(min > 0 ? {min} : {})});
-  ['#adminLessonTitle', '#adminDuration', '#adminUrl', '#adminBody'].forEach(s => $(s).value = '');
-  afterAdminChange(); $('#adminCourse').value = c.id; fillModules();
-  toast('Aula adicionada!');
-});
-$('#addCourse').addEventListener('click', () => {
-  const name = $('#newCourseName').value.trim(); if(!name){ toast('Digite o nome do curso.'); return; }
-  state.courses.push({
-    id: 'curso-' + Date.now(), name,
-    desc: $('#newCourseDesc').value.trim() || 'Novo treinamento exclusivo da plataforma.',
-    learn: $('#newCourseLearn').value.split('\n').map(x => x.trim()).filter(Boolean),
-    price: $('#newCoursePrice').value.trim(),
-    color: $('#newCourseColor').value, tag: 'NOVO TREINAMENTO',
-    code: name.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase(),
-    locked: $('#newCourseLocked').checked,
-    coverUrl: $('#newCourseCover').value.trim(), trailerUrl: $('#newCourseTrailer').value.trim(), checkoutUrl: $('#newCourseCheckout').value.trim(),
-    modules: []
-  });
-  ['#newCourseName', '#newCourseDesc', '#newCourseLearn', '#newCoursePrice', '#newCourseCover', '#newCourseTrailer', '#newCourseCheckout'].forEach(s => $(s).value = '');
-  afterAdminChange(); toast('Curso criado!');
-});
-
 /* ------------------------------------------------------------------
    Início
    ------------------------------------------------------------------ */

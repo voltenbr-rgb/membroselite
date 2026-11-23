@@ -17,7 +17,8 @@
 - **Tela de aula**: player, lista de aulas, abas de descrição, materiais, anotações e dúvidas, próxima aula automática.
 - **Página de venda** para cursos bloqueados: trailer, "o que você vai aprender", conteúdo e botão de checkout.
 - **Evolução**: níveis (Membro → Elite → Master), sequência de dias, calendário de estudo e certificados para imprimir/salvar em PDF.
-- **Perfil**, **Materiais** (PDFs) e busca.
+- **Perfil**, **Materiais** (arquivos e links de todas as aulas) e busca.
+- **Área Master** (link no rodapé): cursos, módulos e aulas com editar, reordenar e excluir. Cada aula tem vídeo (YouTube/Vimeo, abre em janela para o aluno), texto e botões de **arquivo** ou **site**. Também dá para exportar/importar todo o conteúdo em um arquivo.
 - Celular: barra de navegação inferior.
 - Dados salvos no `localStorage` do navegador.
 
