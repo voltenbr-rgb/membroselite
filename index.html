@@ -4,6 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#07080a">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ELITE">
+  <meta name="application-name" content="ELITE">
   <meta name="description" content="Área de membros — ELITE Academy">
   <title>ELITE Academy — Área de membros</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -94,7 +102,7 @@
       </div>
       <footer class="site-foot login-foot">
         <span>© 2026 ELITE Academy</span>
-        <button class="master-link" data-act="master">Área Master</button>
+        <span class="foot-links"><button class="master-link install-link hidden" data-act="install">Instalar app</button><button class="master-link" data-act="master">Área Master</button></span>
       </footer>
     </div>
   </div>
@@ -109,6 +117,7 @@
         <a class="nav-link" data-nav="biblioteca" href="#/biblioteca"><svg class="ic"><use href="#i-library"/></svg><span>Biblioteca</span></a>
         <a class="nav-link" data-nav="evolucao" href="#/evolucao"><svg class="ic"><use href="#i-progress"/></svg><span>Evolução</span></a>
       </nav>
+      <button class="install-side hidden" data-act="install"><span class="install-ic"><svg class="ic"><use href="#i-download"/></svg></span><span><b>Instalar o app</b><small>Acesso rápido, em tela cheia</small></span></button>
       <div class="side-level" id="sideLevel"></div>
       <a class="nav-link side-profile" data-nav="perfil" href="#/perfil"><span class="avatar" id="sideAvatar">E</span><span><b id="sideName">Aluno</b><small id="sideRank">Membro</small></span></a>
     </aside>
@@ -201,6 +210,34 @@
       <div class="vm-body" id="vmBody"></div>
       <button class="modal-close vm-close" data-act="close-video" aria-label="Fechar vídeo"><svg class="ic"><use href="#i-close"/></svg></button>
     </div>
+  </div>
+
+  <div id="installBanner" class="install-banner hidden" role="region" aria-label="Instalar aplicativo">
+    <img src="/icons/icon-192.png" alt="" width="44" height="44">
+    <div><b>Instale o app ELITE</b><small>Abra seus cursos direto da tela inicial.</small></div>
+    <button class="btn btn-primary" data-act="install">Instalar</button>
+    <button class="icon-btn" data-act="install-dismiss" aria-label="Agora não"><svg class="ic"><use href="#i-close"/></svg></button>
+  </div>
+
+  <div id="iosInstall" class="modal-wrap hidden">
+    <div class="modal modal-sm ios-steps" role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+      <button class="modal-close" data-close="iosInstall" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
+      <img src="/icons/icon-192.png" alt="" width="64" height="64" class="ios-icon">
+      <h2 id="iosTitle">Instalar no iPhone</h2>
+      <p class="muted" id="iosIntro">No Safari, são dois toques:</p>
+      <ol id="iosList">
+        <li><span class="step-n">1</span><span>Toque no botão <b>Compartilhar</b> <svg class="ic share-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> na barra do navegador.</span></li>
+        <li><span class="step-n">2</span><span>Escolha <b>Adicionar à Tela de Início</b> e toque em <b>Adicionar</b>.</span></li>
+      </ol>
+      <button class="btn btn-primary full" data-close="iosInstall">Entendi</button>
+    </div>
+  </div>
+
+  <div id="offlineView" class="offline hidden">
+    <div class="brand"><span class="brand-mark">E</span><span class="brand-word">ELITE<i>.</i></span></div>
+    <h1 class="display">Sem conexão</h1>
+    <p class="muted">Conecte-se à internet para acessar suas aulas. Seu progresso continua salvo na sua conta.</p>
+    <button class="btn btn-primary btn-lg" data-act="retry">Tentar novamente</button>
   </div>
 
   <div id="toast" class="toast" role="status"></div>

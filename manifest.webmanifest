@@ -1,0 +1,26 @@
+{
+  "name": "ELITE Academy — Área de membros",
+  "short_name": "ELITE",
+  "description": "Seus cursos, aulas e materiais da ELITE Academy.",
+  "id": "/",
+  "start_url": "/?app=1",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["education"],
+  "icons": [
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Continuar estudando", "short_name": "Continuar", "url": "/?app=1#/inicio", "icons": [{"src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png"}]},
+    {"name": "Meus cursos", "short_name": "Cursos", "url": "/?app=1#/cursos", "icons": [{"src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png"}]},
+    {"name": "Materiais", "short_name": "Materiais", "url": "/?app=1#/biblioteca", "icons": [{"src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png"}]}
+  ]
+}

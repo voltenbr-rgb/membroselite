@@ -551,7 +551,8 @@ function pageProfile(){
         <label for="pfPass">Senha atual</label><input id="pfPass" type="password" autocomplete="current-password">
         <label for="pfNew">Nova senha <small>mínimo 6 caracteres</small></label><input id="pfNew" type="password" autocomplete="new-password"></details>` : ''}
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px"><button class="btn btn-primary" type="submit">Salvar alterações</button><button class="btn btn-line" type="button" data-act="logout">${ic('logout')} Sair da conta</button></div>
-    </form>`;
+    </form>
+    <div id="installSlot">${installPanel()}</div>`;
 }
 
 /* ------------------------------------------------------------------
@@ -584,6 +585,7 @@ function render(){
   document.title = r.title;
   $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === r.nav));
   renderChrome();
+  refreshInstallUI();
   if(render.last !== location.hash){ window.scrollTo(0, 0); render.last = location.hash; }
 }
 // atualiza só partes da página (evita recarregar o vídeo da aula)
@@ -656,6 +658,7 @@ function localLogoutView(){
   $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden');
   $('#memberPassword').value = ''; closeMenu();
   history.replaceState(null, '', location.pathname + location.search);
+  refreshInstallUI();
 }
 function logout(){
   if(API.on){ clearTimeout(save.timer); api('/progress', 'PUT', {data: progressPayload()}).catch(() => {}).finally(() => api('/logout', 'POST').catch(() => {})); localLogoutView(); return; }
@@ -892,9 +895,65 @@ async function boot(){
       document.body.classList.add('ready');
       return;
     }
-  } catch(e) {}
+  } catch(e) {
+    // sem internet (no site publicado ou no app instalado): mostra a tela "sem conexão"
+    if(location.protocol.startsWith('http')){ showOffline(); return; }
+  }
   // modo demonstração (sem banco)
   document.body.classList.add('ready');
   if(state.user) showApp();
 }
-boot();
+/* ------------------------------------------------------------------
+   App instalável (PWA)
+   ------------------------------------------------------------------ */
+const PWA = {prompt: null};
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const canInstall = () => !isStandalone() && (!!PWA.prompt || isIOS());
+function refreshInstallUI(){
+  const ok = canInstall();
+  $$('.install-side, .install-link').forEach(x => x.classList.toggle('hidden', !ok));
+  let dismissed = 0; try { dismissed = +localStorage.getItem('eliteInstallDismissed') || 0; } catch(e) {}
+  const show = ok && !!state.user && !$('#appView').classList.contains('hidden') && Date.now() - dismissed > 7 * 86400_000;
+  $('#installBanner').classList.toggle('hidden', !show);
+  const slot = $('#installSlot'); if(slot) slot.innerHTML = installPanel();
+}
+function installPanel(){
+  if(isStandalone()) return `<div class="panel sec install-panel"><span class="install-ic">${ic('check')}</span><div><h3>App instalado</h3><p class="muted">Você está usando o app da ELITE Academy.</p></div></div>`;
+  if(!canInstall()) return `<div class="panel sec install-panel"><span class="install-ic">${ic('download')}</span><div><h3>Instalar o app</h3><p class="muted">No Chrome ou Edge, use o ícone de instalar na barra de endereço ou o menu ⋮ → <b>Instalar app</b>. No iPhone, abra no Safari e use Compartilhar → <b>Adicionar à Tela de Início</b>.</p></div></div>`;
+  return `<div class="panel sec install-panel"><span class="install-ic">${ic('download')}</span><div><h3>Instalar o app</h3><p class="muted">Tenha a ELITE Academy na tela inicial do celular ou no computador, em tela cheia e com acesso em um toque.</p></div><button class="btn btn-primary" data-act="install">${ic('download')} Instalar</button></div>`;
+}
+async function doInstall(){
+  if(PWA.prompt){
+    PWA.prompt.prompt();
+    const {outcome} = await PWA.prompt.userChoice;
+    PWA.prompt = null;
+    if(outcome === 'accepted') toast('App instalado! Procure o ícone ELITE.');
+    refreshInstallUI(); return;
+  }
+  if(isIOS()){
+    const safari = /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
+    $('#iosIntro').innerHTML = safari ? 'No Safari, são dois toques:' : 'Abra este site no <b>Safari</b> e depois:';
+    $('#iosInstall').classList.remove('hidden'); return;
+  }
+  toast('Use o menu do navegador → Instalar app.');
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); PWA.prompt = e; refreshInstallUI(); });
+window.addEventListener('appinstalled', () => { PWA.prompt = null; refreshInstallUI(); });
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if(!t) return;
+  if(t.dataset.act === 'install'){ doInstall(); }
+  if(t.dataset.act === 'install-dismiss'){ try { localStorage.setItem('eliteInstallDismissed', Date.now()); } catch(err) {} refreshInstallUI(); }
+  if(t.dataset.act === 'retry'){ location.reload(); }
+});
+function showOffline(){
+  document.body.classList.add('ready');
+  $('#loginView').classList.add('hidden'); $('#appView').classList.add('hidden');
+  $('#offlineView').classList.remove('hidden');
+}
+window.addEventListener('online', () => { if(!$('#offlineView').classList.contains('hidden')) location.reload(); });
+window.addEventListener('offline', () => toast('Você está sem internet. Algumas coisas podem não salvar.'));
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+boot().then(refreshInstallUI);

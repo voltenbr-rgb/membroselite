@@ -25,6 +25,7 @@
 - **Perfil**, **Materiais** (arquivos e links de todas as aulas) e busca.
 - **Área Master** (link no rodapé): cursos, módulos e aulas com editar, reordenar e excluir. Cada aula tem vídeo (YouTube/Vimeo, abre em janela para o aluno), texto e botões de **arquivo** ou **site**. Também dá para exportar/importar todo o conteúdo em um arquivo.
 - Celular: barra de navegação inferior.
+- **App instalável (PWA):** ícone próprio, abre em tela cheia, botão/aviso "Instalar o app" (Android, computador) e passo a passo para iPhone; tela de "sem conexão" quando não há internet. Arquivos: `manifest.webmanifest`, `sw.js`, `icons/`, `_headers`.
 - Dados salvos no `localStorage` do navegador.
 
 ## Importante antes de vender
