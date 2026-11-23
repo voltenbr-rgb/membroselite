@@ -111,7 +111,7 @@ function typeIcon(t){ return t === 'video' ? 'play' : t === 'pdf' ? 'file' : 'te
 function embedUrl(url){
   const u = safeUrl(url); if(!u) return '';
   const yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{6,})/);
-  if(yt) return 'https://www.youtube.com/embed/' + yt[1] + '?rel=0';
+  if(yt) return 'https://www.youtube-nocookie.com/embed/' + yt[1] + '?rel=0&modestbranding=1&playsinline=1';
   const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
   if(vm) return 'https://player.vimeo.com/video/' + vm[1];
   return u;
@@ -598,6 +598,13 @@ document.addEventListener('click', e => {
   const d = t.dataset;
   if(t.id === 'userBtn'){ const dd = $('#userDropdown'); dd.classList.toggle('hidden'); t.setAttribute('aria-expanded', !dd.classList.contains('hidden')); return; }
   if(d.close){ $('#' + d.close).classList.add('hidden'); return; }
+  if(d.act === 'close-video'){ closeVideo(); return; }
+  if(d.act === 'vm-complete' && vmCurrent){
+    const k = key(vmCurrent.c, vmCurrent.mi, vmCurrent.li);
+    if(isDone(k)) state.completed = state.completed.filter(x => x !== k);
+    else { const before = level().i; state.completed.push(k); markStudy(); toast(level().i > before ? `Novo nível: ${level().cur.name}!` : 'Aula concluída!'); }
+    save(); paintVideoBody(); renderChrome(); return;
+  }
   if(d.act === 'master'){ openMasterLogin(); return; }
   if(d.act === 'logout'){ logout(); return; }
   if(d.act === 'print'){ window.print(); return; }
@@ -638,9 +645,83 @@ document.addEventListener('submit', e => {
   }
 });
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){ $$('.modal-wrap').forEach(m => m.classList.add('hidden')); closeMenu(); }
+  if(e.key === 'Escape'){ if(!$('#videoModal').classList.contains('hidden')){ closeVideo(); return; } $$('.modal-wrap').forEach(m => m.classList.add('hidden')); closeMenu(); }
 });
-$$('.modal-wrap').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.add('hidden'); }));
+$$('.modal-wrap').forEach(m => m.addEventListener('click', e => { if(e.target !== m) return; if(m.id === 'videoModal') closeVideo(); else m.classList.add('hidden'); }));
+
+
+/* ------------------------------------------------------------------
+   Player em janela para videoaulas
+   ------------------------------------------------------------------ */
+let vmCurrent = null;   // {c, mi, li}
+function videoTarget(href){
+  const m = String(href || '').match(/^#\/aula\/([^/]+)\/(\d+)\/(\d+)$/);
+  if(!m) return null;
+  const c = findCourse(decodeURIComponent(m[1])); if(!c || c.locked) return null;
+  const mi = +m[2], li = +m[3], l = c.modules[mi]?.lessons[li];
+  if(!l || l.type !== 'video' || !embedUrl(l.url)) return null;
+  return {c, mi, li};
+}
+function openVideo({c, mi, li}, push = true){
+  const l = c.modules[mi].lessons[li];
+  vmCurrent = {c, mi, li};
+  markStudy();
+  const src = embedUrl(l.url);
+  const auto = src + (src.includes('?') ? '&' : '?') + 'autoplay=1';
+  const frame = $('#vmPlayer iframe');
+  if(!frame || frame.dataset.src !== src) $('#vmPlayer').innerHTML = `<iframe data-src="${esc(src)}" src="${esc(auto)}" title="${esc(l.title)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe>`;
+  paintVideoBody();
+  const wrap = $('#videoModal');
+  if(wrap.classList.contains('hidden')){
+    wrap.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    if(push) history.pushState({vm: true}, '', location.href);
+  }
+}
+function paintVideoBody(){
+  if(!vmCurrent) return;
+  const {c, mi, li} = vmCurrent, m = c.modules[mi], l = m.lessons[li];
+  const k = key(c, mi, li), d = isDone(k), s = stats(c);
+  const all = lessonsOf(c), idx = all.findIndex(x => x.k === k), next = all[idx + 1];
+  const nextHref = next ? `#/aula/${encodeURIComponent(c.id)}/${next.mi}/${next.li}` : '';
+  $('#vmBody').innerHTML = `
+    <div class="vm-info">
+      <div class="vm-crumbs">${esc(c.name)} · ${esc(m.name)} · Aula ${idx + 1} de ${s.total}${l.min ? ' · ' + fmtMin(l.min) : ''}</div>
+      <h2 id="vmTitle">${esc(l.title)}</h2>
+      <div class="vm-progress"><span>${s.pct}%</span><div class="bar"><i style="width:${s.pct}%"></i></div><span>${s.done}/${s.total}</span></div>
+    </div>
+    <div class="vm-actions">
+      <button class="btn ${d ? 'done' : 'btn-primary'}" data-act="vm-complete">${ic('check')} ${d ? 'Concluída' : 'Marcar como concluída'}</button>
+      ${next ? `<a class="btn ${d ? 'btn-primary' : 'btn-ghost'}" href="${nextHref}" data-vm-next="1">Próxima aula ${ic('chevron-right')}</a>` : ''}
+      <a class="btn btn-line" href="#/aula/${encodeURIComponent(c.id)}/${mi}/${li}" data-vm-page="1">${ic('note')} Anotações e materiais</a>
+    </div>`;
+}
+function closeVideo(fromUser = true){
+  const wrap = $('#videoModal');
+  if(wrap.classList.contains('hidden')) return;
+  wrap.classList.add('hidden');
+  $('#vmPlayer').innerHTML = '';          // para o vídeo
+  document.body.style.overflow = '';
+  vmCurrent = null;
+  if(fromUser && history.state?.vm) history.back();
+  render();                                // atualiza o progresso na página de trás
+}
+window.addEventListener('popstate', () => { if(!$('#videoModal').classList.contains('hidden')) closeVideo(false); });
+// intercepta cliques em videoaulas (fora da página da aula) para abrir na janela
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="#/aula/"]');
+  if(!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  if(a.dataset.vmPage){ e.preventDefault(); const h = a.getAttribute('href'); closeVideo(false); if(history.state?.vm) history.replaceState(null, '', location.href); location.hash = h; return; }
+  const inModal = !!a.closest('#videoModal');
+  if(!inModal && parseRoute().name === 'aula') return;      // na página da aula, segue normal
+  const t = videoTarget(a.getAttribute('href'));
+  if(!t){
+    if(inModal){ e.preventDefault(); const h = a.getAttribute('href'); closeVideo(false); if(history.state?.vm) history.replaceState(null, '', location.href); location.hash = h; }
+    return;
+  }
+  e.preventDefault(); e.stopImmediatePropagation();
+  openVideo(t, !inModal);
+}, true);
 
 /* ------------------------------------------------------------------
    Login
