@@ -721,6 +721,42 @@ textarea{resize:vertical}
   .sheet-foot .btn{flex:1}
   .res-buttons{grid-template-columns:1fr}
 }
+
+/* ---------- banco de dados: alunos, avisos ---------- */
+body:not(.ready) #loginView{visibility:hidden}
+.pw-box{margin-top:18px;padding:14px 16px;border-radius:14px;background:var(--bg-2)}
+.pw-box summary{cursor:pointer;font-weight:700;color:var(--soft);min-height:28px}
+.adm-banner{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px;padding:16px 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line-2);color:var(--soft);font-size:14px}
+.adm-banner>.ic{color:var(--accent)}
+.adm-banner span{flex:1 1 300px}
+.adm-banner.warn{border-color:rgba(255,190,90,.35);background:rgba(255,190,90,.06)}
+.adm-banner.warn>.ic{color:#ffbe5a}
+.adm-ic-art{display:grid;place-items:center;background:var(--accent-a);color:var(--accent)}
+.adm-students-btn{margin-bottom:6px}
+.adm-newuser{margin:24px 0}
+.pass-gen{display:flex;gap:8px}
+.pass-gen input{flex:1;font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.adm-created{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;margin:24px 0 0;padding:20px;border-radius:18px;background:var(--accent-a);border:1px solid rgba(169,239,92,.3)}
+.adm-created p{margin:6px 0 10px;color:var(--soft)}
+.adm-created pre{margin:0;white-space:pre-wrap;font:500 14px/1.6 var(--ui);color:var(--text)}
+.adm-created-actions{display:flex;gap:8px;flex-wrap:wrap}
+.stu-list{display:flex;flex-direction:column;gap:8px}
+.stu{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:18px;background:var(--surface)}
+.stu-main{flex:1;min-width:0}
+.stu-main>b{display:flex;align-items:center;gap:8px;font-size:15px}
+.stu-main>small{display:block;color:var(--muted);font-size:13px;margin:2px 0 8px;overflow:hidden;text-overflow:ellipsis}
+.stu-meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:10px}
+.stu-meta span{display:inline-flex;align-items:center;gap:5px}
+.stu-meta .ic{width:14px;height:14px}
+.stu .bar{height:4px;max-width:320px}
+.stu-reset{display:flex;gap:8px;margin-top:12px;max-width:420px}
+.stu-reset input{flex:1;padding:10px 12px;font-family:ui-monospace,Menlo,monospace}
+@media (max-width:900px){
+  .adm-students-btn{margin-bottom:0}
+  .stu{flex-wrap:wrap}
+  .stu>.adm-row-actions{width:100%;justify-content:flex-end}
+  .stu-reset{flex-direction:column}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media print{
   body *{visibility:hidden}

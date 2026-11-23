@@ -7,9 +7,14 @@
 4. Selecione o repositório. Framework preset: **None**. Build command: deixe vazio. Build output directory: `/` (ou `.` conforme a interface).
 5. Faça o deploy.
 
-## Acesso demonstrativo
-- A tela inicial pede nome e senha (senha de demonstração: `1989`). Telefone é opcional.
-- A **Área Master** fica no rodapé (link discreto), na tela de login e dentro da plataforma.
+## Banco de dados (Cloudflare D1)
+- O site usa o banco **membroselite**, ligado ao projeto do Pages com o nome de variável `DB` (Settings → Bindings).
+- A API fica em `functions/api/[[path]].js` (Cloudflare Pages Functions). As tabelas estão em `schema.sql` e também são criadas sozinhas no primeiro acesso.
+- **Primeiro acesso:** clique em **Área Master** no rodapé e crie a conta Master (nome, e-mail, senha). Isso só funciona uma vez.
+- No Master, em **Alunos**, cadastre cada aluno (e-mail + senha inicial) e envie a mensagem de acesso pronta.
+- Conteúdo (cursos/aulas), progresso, anotações e dúvidas de cada aluno ficam salvos no banco e aparecem em qualquer aparelho.
+- Alunos não recebem os links das aulas de cursos bloqueados.
+- Se a API não responder (por exemplo, abrindo o `index.html` direto no computador), o site entra em **modo demonstração**: senha `1989` e tudo salvo só no navegador.
 
 ## O que já está no protótipo
 - **Início "Sua jornada"**: saudação, card "Continue de onde parou", números de progresso, cursos em pôster, cursos para desbloquear e nível do aluno.

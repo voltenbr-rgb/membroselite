@@ -73,12 +73,20 @@
         <h1>Entrar na sua conta</h1>
         <p class="muted">Continue de onde parou. Seus cursos, aulas e materiais estão te esperando.</p>
         <form id="loginForm" novalidate>
-          <label for="memberName">Seu nome</label>
-          <input id="memberName" autocomplete="name" placeholder="Como podemos te chamar?" required>
-          <label for="memberPassword">Senha de acesso</label>
-          <input id="memberPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••" required>
-          <label for="memberPhone">Telefone <small>opcional</small></label>
-          <input id="memberPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000">
+          <div class="f-local">
+            <label for="memberName">Seu nome</label>
+            <input id="memberName" autocomplete="name" placeholder="Como podemos te chamar?">
+          </div>
+          <div class="f-api hidden">
+            <label for="memberEmail">E-mail</label>
+            <input id="memberEmail" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com">
+          </div>
+          <label for="memberPassword">Senha</label>
+          <input id="memberPassword" type="password" autocomplete="current-password" placeholder="Sua senha">
+          <div class="f-local">
+            <label for="memberPhone">Telefone <small>opcional</small></label>
+            <input id="memberPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000">
+          </div>
           <button class="btn btn-primary btn-lg full" type="submit">Acessar plataforma <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
           <p id="loginError" class="error" role="alert"></p>
         </form>
@@ -144,9 +152,17 @@
       <button class="modal-close" data-close="masterLoginModal" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
       <span class="kicker">ACESSO RESTRITO</span>
       <h2 id="masterTitle">Área Master</h2>
-      <p class="muted">Administre cursos, módulos e aulas da plataforma.</p>
-      <label for="masterPassword">Senha administrativa</label>
-      <input id="masterPassword" type="password" inputmode="numeric" placeholder="Digite a senha">
+      <p class="muted" id="masterIntro">Administre cursos, módulos, aulas e alunos da plataforma.</p>
+      <div class="m-setup hidden">
+        <label for="masterName">Seu nome</label>
+        <input id="masterName" autocomplete="name" placeholder="Seu nome">
+      </div>
+      <div class="m-api hidden">
+        <label for="masterEmail">E-mail</label>
+        <input id="masterEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com">
+      </div>
+      <label for="masterPassword" id="masterPassLabel">Senha administrativa</label>
+      <input id="masterPassword" type="password" placeholder="Digite a senha">
       <p id="masterLoginError" class="error" role="alert"></p>
       <button class="btn btn-primary full" id="masterLoginButton">Entrar</button>
     </div>

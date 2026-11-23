@@ -67,8 +67,12 @@ function loadState(){
   try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e) {}
   if(!s || !Array.isArray(s.courses)) s = {courses: clone(initialCourses), completed: [], user: null};
   s.completed ||= []; s.days ||= []; s.notes ||= {}; s.questions ||= {};
-  // completa dados novos (duração, "o que vai aprender") em cursos de exemplo já salvos
-  s.courses.forEach(c => {
+  migrate(s.courses);
+  return s;
+}
+// completa dados novos (duração, "o que vai aprender") em cursos de exemplo já salvos
+function migrate(courses){
+  courses.forEach(c => {
     const base = initialCourses.find(b => b.id === c.id);
     if(!base) return;
     if(!c.learn) c.learn = base.learn;
@@ -77,12 +81,52 @@ function loadState(){
       if(bl && bl.title === l.title && l.min == null) l.min = bl.min;
     }));
   });
-  return s;
+  return courses;
 }
+
+/* ------------------------------------------------------------------
+   Banco de dados (Cloudflare D1 pela API /api). Sem API → modo demonstração,
+   tudo salvo no navegador.
+   ------------------------------------------------------------------ */
+const API = {on: false, needsSetup: false, contentEmpty: false};
+async function api(path, method = 'GET', body){
+  const r = await fetch('/api' + path, {method, credentials: 'same-origin', headers: body ? {'content-type': 'application/json'} : {}, body: body ? JSON.stringify(body) : undefined});
+  let data = {}; try { data = await r.json(); } catch(e) {}
+  if(!r.ok){ const err = new Error(data.error || 'Não foi possível falar com o servidor.'); err.status = r.status; throw err; }
+  return data;
+}
+function progressPayload(){ return {completed: state.completed, days: state.days, notes: state.notes, questions: state.questions}; }
 function save(){
+  if(API.on){
+    if(!state.user) return true;
+    clearTimeout(save.timer);
+    save.timer = setTimeout(() => api('/progress', 'PUT', {data: progressPayload()}).catch(e => { if(e.status === 401) sessionExpired(); else toast('Não foi possível salvar seu progresso. Verifique a internet.'); }), 600);
+    return true;
+  }
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); return true; }
   catch(e){ console.warn('Não foi possível salvar neste navegador:', e); return false; }
 }
+// conteúdo (cursos) — só o Master grava
+function saveContent(){
+  if(!API.on) return save();
+  clearTimeout(saveContent.timer);
+  return new Promise(res => { saveContent.timer = setTimeout(() => api('/content', 'PUT', {courses: state.courses})
+    .then(() => { API.contentEmpty = false; document.dispatchEvent(new Event('content-saved')); res(true); })
+    .catch(e => { toast(e.status === 403 ? 'Apenas o Master pode alterar o conteúdo.' : 'Não foi possível salvar no banco. Tente de novo.'); res(false); }), 300); });
+}
+async function loadServer(user){
+  const [content, progress] = await Promise.all([api('/content'), api('/progress')]);
+  let courses = content.courses;
+  API.contentEmpty = !courses;
+  if(!courses){
+    // banco ainda vazio: o Master parte do que já montou neste navegador (ou dos exemplos)
+    let local = null; try { local = JSON.parse(localStorage.getItem(STORE_KEY))?.courses; } catch(e) {}
+    courses = user.role === 'admin' && Array.isArray(local) && local.length ? local : clone(initialCourses);
+  }
+  const d = progress.data || {};
+  state = {courses: migrate(courses), completed: d.completed || [], days: d.days || [], notes: d.notes || {}, questions: d.questions || {}, user: {name: user.name, phone: user.phone, email: user.email, role: user.role}};
+}
+function sessionExpired(){ toast('Sua sessão expirou. Entre novamente.'); localLogoutView(); }
 
 /* ------------------------------------------------------------------
    Utilitários
@@ -501,7 +545,11 @@ function pageProfile(){
     <form class="panel sec profile-form" id="profileForm">
       <h3>Seus dados</h3>
       <label for="pfName" style="margin-top:0">Nome</label><input id="pfName" value="${esc(u.name || '')}" autocomplete="name">
+      ${API.on ? `<label for="pfEmail">E-mail</label><input id="pfEmail" value="${esc(u.email || '')}" disabled>` : ''}
       <label for="pfPhone">Telefone</label><input id="pfPhone" type="tel" value="${esc(u.phone || '')}" placeholder="(00) 00000-0000" autocomplete="tel">
+      ${API.on ? `<details class="pw-box"><summary>Trocar senha</summary>
+        <label for="pfPass">Senha atual</label><input id="pfPass" type="password" autocomplete="current-password">
+        <label for="pfNew">Nova senha <small>mínimo 6 caracteres</small></label><input id="pfNew" type="password" autocomplete="new-password"></details>` : ''}
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px"><button class="btn btn-primary" type="submit">Salvar alterações</button><button class="btn btn-line" type="button" data-act="logout">${ic('logout')} Sair da conta</button></div>
     </form>`;
 }
@@ -602,7 +650,15 @@ function buy(id){
   const note = $('#buyNote'); if(note) note.textContent = 'O checkout deste curso ainda está sendo configurado.';
   toast('Checkout ainda não configurado.');
 }
+function localLogoutView(){
+  state.user = null; clearAutoNext();
+  if(typeof closeAdmin === 'function' && !$('#adminPanel').classList.contains('hidden')) closeAdmin();
+  $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden');
+  $('#memberPassword').value = ''; closeMenu();
+  history.replaceState(null, '', location.pathname + location.search);
+}
 function logout(){
+  if(API.on){ clearTimeout(save.timer); api('/progress', 'PUT', {data: progressPayload()}).catch(() => {}).finally(() => api('/logout', 'POST').catch(() => {})); localLogoutView(); return; }
   state.user = null; save(); clearAutoNext();
   $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden');
   $('#memberPassword').value = ''; closeMenu();
@@ -660,7 +716,14 @@ document.addEventListener('submit', e => {
   if(f.id === 'profileForm'){
     e.preventDefault();
     const name = $('#pfName').value.trim(); if(!name){ toast('Digite seu nome.'); return; }
-    state.user = {...state.user, name, phone: $('#pfPhone').value.trim()}; save(); render(); toast('Perfil atualizado.');
+    const phone = $('#pfPhone').value.trim();
+    if(API.on){
+      const body = {name, phone};
+      const np = $('#pfNew')?.value; if(np){ body.newPassword = np; body.password = $('#pfPass').value; }
+      api('/me', 'PATCH', body).then(() => { state.user = {...state.user, name, phone}; render(); toast(np ? 'Perfil e senha atualizados.' : 'Perfil atualizado.'); }).catch(err => toast(err.message));
+      return;
+    }
+    state.user = {...state.user, name, phone}; save(); render(); toast('Perfil atualizado.');
   }
 });
 document.addEventListener('keydown', e => {
@@ -754,8 +817,19 @@ function showApp(){
   else if(!location.hash) location.hash = '#/inicio';
   render();
 }
-$('#loginForm').addEventListener('submit', e => {
+$('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
+  if(API.on){
+    const email = $('#memberEmail').value.trim(), password = $('#memberPassword').value;
+    if(!email || !password){ $('#loginError').textContent = 'Informe seu e-mail e sua senha.'; return; }
+    const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+    try {
+      const {user} = await api('/login', 'POST', {email, password});
+      await loadServer(user); $('#loginError').textContent = ''; $('#memberPassword').value = ''; showApp();
+    } catch(err){ $('#loginError').textContent = err.message; }
+    finally { btn.disabled = false; }
+    return;
+  }
   const name = $('#memberName').value.trim(), pass = $('#memberPassword').value.trim();
   if(!name){ $('#loginError').textContent = 'Digite seu nome para continuar.'; $('#memberName').focus(); return; }
   if(pass !== DEMO_PASSWORD){ $('#loginError').textContent = 'Senha incorreta. Confira e tente novamente.'; $('#memberPassword').focus(); return; }
@@ -768,17 +842,59 @@ $('#loginForm').addEventListener('submit', e => {
    Área Master
    ------------------------------------------------------------------ */
 function openMasterLogin(){
+  if(API.on && state.user?.role === 'admin'){ openAdmin(); return; }
   $('#masterPassword').value = ''; $('#masterLoginError').textContent = '';
-  $('#masterLoginModal').classList.remove('hidden'); $('#masterPassword').focus();
+  const setup = API.on && API.needsSetup;
+  $$('.m-api').forEach(x => x.classList.toggle('hidden', !API.on));
+  $$('.m-setup').forEach(x => x.classList.toggle('hidden', !setup));
+  $('#masterTitle').textContent = setup ? 'Criar conta Master' : 'Área Master';
+  $('#masterIntro').textContent = setup ? 'Primeiro acesso: crie a conta que vai administrar a plataforma. Guarde bem esse e-mail e senha.' : 'Administre cursos, módulos, aulas e alunos da plataforma.';
+  $('#masterPassLabel').textContent = setup ? 'Crie uma senha (mínimo 6 caracteres)' : API.on ? 'Senha' : 'Senha administrativa';
+  $('#masterPassword').autocomplete = setup ? 'new-password' : 'current-password';
+  $('#masterLoginButton').textContent = setup ? 'Criar conta Master' : 'Entrar';
+  $('#masterLoginModal').classList.remove('hidden');
+  (setup ? $('#masterName') : API.on ? $('#masterEmail') : $('#masterPassword')).focus();
 }
-function enterMaster(){
-  if($('#masterPassword').value !== DEMO_PASSWORD){ $('#masterLoginError').textContent = 'Senha incorreta.'; return; }
-  $('#masterLoginModal').classList.add('hidden');
-  openAdmin();
+async function enterMaster(){
+  if(!API.on){
+    if($('#masterPassword').value !== DEMO_PASSWORD){ $('#masterLoginError').textContent = 'Senha incorreta.'; return; }
+    $('#masterLoginModal').classList.add('hidden'); openAdmin(); return;
+  }
+  const btn = $('#masterLoginButton'); btn.disabled = true;
+  try {
+    const body = {email: $('#masterEmail').value.trim(), password: $('#masterPassword').value};
+    let user;
+    if(API.needsSetup){ body.name = $('#masterName').value.trim(); ({user} = await api('/setup', 'POST', body)); API.needsSetup = false; }
+    else ({user} = await api('/login', 'POST', body));
+    await loadServer(user);
+    $('#masterLoginModal').classList.add('hidden');
+    if($('#appView').classList.contains('hidden')) showApp(); else render();
+    if(user.role !== 'admin'){ toast('Esta conta é de aluno. Você entrou na área de membros.'); return; }
+    openAdmin();
+  } catch(err){ $('#masterLoginError').textContent = err.message; }
+  finally { btn.disabled = false; }
 }
 $('#masterLoginButton').addEventListener('click', enterMaster);
 $('#masterPassword').addEventListener('keydown', e => { if(e.key === 'Enter') enterMaster(); });
 /* ------------------------------------------------------------------
    Início
    ------------------------------------------------------------------ */
-if(state.user) showApp();
+async function boot(){
+  try {
+    const r = await fetch('/api/me', {credentials: 'same-origin'});
+    if(r.ok && (r.headers.get('content-type') || '').includes('application/json')){
+      const d = await r.json();
+      API.on = true; API.needsSetup = !!d.needsSetup;
+      $$('.f-local').forEach(x => x.classList.add('hidden'));
+      $$('.f-api').forEach(x => x.classList.remove('hidden'));
+      state = {courses: [], completed: [], days: [], notes: {}, questions: {}, user: null};
+      if(d.user){ await loadServer(d.user); showApp(); }
+      document.body.classList.add('ready');
+      return;
+    }
+  } catch(e) {}
+  // modo demonstração (sem banco)
+  document.body.classList.add('ready');
+  if(state.user) showApp();
+}
+boot();

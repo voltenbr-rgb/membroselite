@@ -3,11 +3,11 @@
    Cursos → módulos → aulas. Cada aula tem: vídeo (abre em janela para o
    aluno), texto e botões (arquivo ou site). Usa as funções de app.js.
    ================================================================== */
-const ADM = {courseId: null, tab: 'aulas', sheet: null, confirm: null};
+const ADM = {courseId: null, tab: 'aulas', sheet: null, confirm: null, view: 'course', users: null, created: null};
 const COLORS = [['green', 'Verde'], ['purple', 'Roxo'], ['blue', 'Azul'], ['orange', 'Laranja']];
 
 function admCourse(){ return findCourse(ADM.courseId) || state.courses[0] || null; }
-function admSave(msg){ save(); if(state.user && !$('#appView').classList.contains('hidden')) render(); renderAdmin(); if(msg) toast(msg); }
+function admSave(msg, progressToo = false){ saveContent(); if(progressToo) save(); if(state.user && !$('#appView').classList.contains('hidden')) render(); renderAdmin(); if(msg) toast(msg); }
 
 function openAdmin(){
   ADM.courseId = ADM.courseId && findCourse(ADM.courseId) ? ADM.courseId : state.courses[0]?.id || null;
@@ -26,14 +26,18 @@ function closeAdmin(){
 function renderAdmin(){
   const cur = admCourse(); ADM.courseId = cur?.id || null;
   $('#admSide').innerHTML = `
+    ${API.on ? `<button class="adm-course adm-students-btn${ADM.view === 'students' ? ' active' : ''}" data-adm="students"><span class="adm-course-art adm-ic-art">${ic('user')}</span><span class="adm-course-txt"><b>Alunos</b><small>Acessos e progresso</small></span></button>` : ''}
     <div class="adm-side-head"><span class="kicker">Seus cursos</span><span class="muted">${state.courses.length}</span></div>
     <div class="adm-courses">${state.courses.map(c => `
-      <button class="adm-course${c.id === ADM.courseId ? ' active' : ''}" data-adm-course="${esc(c.id)}">
+      <button class="adm-course${c.id === ADM.courseId && ADM.view === 'course' ? ' active' : ''}" data-adm-course="${esc(c.id)}">
         <span class="adm-course-art">${art(c)}</span>
         <span class="adm-course-txt"><b>${esc(c.name)}</b><small>${plural(lessonsOf(c).length, 'aula', 'aulas')} · ${c.locked ? 'Bloqueado' : 'Liberado'}</small></span>
       </button>`).join('')}</div>
     <button class="btn btn-primary full" data-adm="new-course">${ic('plus')} Novo curso</button>`;
-  $('#admMain').innerHTML = cur ? courseEditor(cur) : '<div class="empty">Crie seu primeiro curso.</div>';
+  const banner = !API.on
+    ? `<div class="adm-banner">${ic('shield')}<span><b>Modo demonstração.</b> O banco de dados não respondeu, então as alterações ficam salvas só neste navegador.</span></div>`
+    : API.contentEmpty ? `<div class="adm-banner warn">${ic('upload')}<span><b>O banco ainda não tem cursos salvos.</b> Os alunos veem os cursos de exemplo até você salvar.</span><button class="btn btn-primary" data-adm="publish">Salvar estes cursos no banco</button></div>` : '';
+  $('#admMain').innerHTML = banner + (ADM.view === 'students' ? studentsView() : cur ? courseEditor(cur) : '<div class="empty">Crie seu primeiro curso.</div>');
 }
 
 function courseEditor(c){
@@ -237,17 +241,30 @@ function remapProgress(c){
 $('#adminPanel').addEventListener('click', e => {
   const b = e.target.closest('button, a'); if(!b) return;
   const d = b.dataset, c = admCourse();
-  if(d.admDel == null && ADM.confirm){ ADM.confirm = null; renderAdmin(); }
+  if(d.admDel == null && d.userDel == null && ADM.confirm){ ADM.confirm = null; renderAdmin(); }
   if(d.adm === 'close'){ closeAdmin(); return; }
   if(d.adm === 'export'){ exportData(); return; }
   if(d.adm === 'new-course'){
     const id = 'curso-' + Date.now();
     state.courses.push({id, name: 'Novo curso', desc: '', tag: 'NOVO TREINAMENTO', code: 'NC', color: 'green', locked: true, learn: [], modules: [{name: 'Módulo 01 — Comece aqui', lessons: []}]});
-    ADM.courseId = id; ADM.tab = 'dados'; admSave('Curso criado. Preencha os dados.');
+    ADM.view = 'course'; ADM.courseId = id; ADM.tab = 'dados'; admSave('Curso criado. Preencha os dados.');
     setTimeout(() => { const i = $('#cfName'); i?.focus(); i?.select(); }, 30); return;
   }
-  if(d.admCourse){ ADM.courseId = d.admCourse; ADM.tab = 'aulas'; ADM.confirm = null; renderAdmin(); $('#admMain').scrollTop = 0; return; }
+  if(d.admCourse){ ADM.view = 'course'; ADM.courseId = d.admCourse; ADM.tab = 'aulas'; ADM.confirm = null; renderAdmin(); $('#admMain').scrollTop = 0; return; }
   if(d.admTab){ ADM.tab = d.admTab; renderAdmin(); return; }
+  if(d.adm === 'publish'){ saveContent().then(ok => { if(ok){ toast('Cursos salvos no banco!'); renderAdmin(); } }); return; }
+  if(d.adm === 'students'){ ADM.view = 'students'; ADM.created = null; renderAdmin(); loadUsers(); return; }
+  if(d.adm === 'gen-pass'){ const i = $('#nuPass'); i.value = genPass(); i.type = 'text'; i.focus(); return; }
+  if(d.adm === 'copy-access'){ copyText(accessMessage(ADM.created), 'Mensagem de acesso copiada!'); return; }
+  if(d.adm === 'dismiss-created'){ ADM.created = null; renderAdmin(); return; }
+  if(d.userReset){ const id = +d.userReset; ADM.resetId = ADM.resetId === id ? null : id; renderAdmin(); setTimeout(() => $('#rp-' + id)?.focus(), 30); return; }
+  if(d.userResetSave){ resetPassword(+d.userResetSave); return; }
+  if(d.userDel){
+    const key = 'user:' + d.userDel;
+    if(ADM.confirm !== key){ ADM.confirm = key; renderAdmin(); return; }
+    ADM.confirm = null;
+    api('/admin/users/' + d.userDel, 'DELETE').then(() => { toast('Aluno removido.'); loadUsers(); }).catch(err => toast(err.message)); return;
+  }
   if(!c) return;
   if(d.adm === 'toggle-lock'){ c.locked = !c.locked; admSave(c.locked ? 'Curso bloqueado (à venda).' : 'Curso liberado para os alunos.'); return; }
   if(d.adm === 'copy-link'){
@@ -267,12 +284,12 @@ $('#adminPanel').addEventListener('click', e => {
   if(d.admModMove){
     const [mi, dir] = d.admModMove.split(':').map(Number), to = mi + dir;
     if(to < 0 || to >= c.modules.length) return;
-    beforeChange(c); [c.modules[mi], c.modules[to]] = [c.modules[to], c.modules[mi]]; remapProgress(c); admSave(); return;
+    beforeChange(c); [c.modules[mi], c.modules[to]] = [c.modules[to], c.modules[mi]]; remapProgress(c); admSave('', true); return;
   }
   if(d.admLesMove){
     const [mi, li, dir] = d.admLesMove.split(':').map(Number), arr = c.modules[mi].lessons, to = li + dir;
     if(to < 0 || to >= arr.length) return;
-    beforeChange(c); [arr[li], arr[to]] = [arr[to], arr[li]]; remapProgress(c); admSave(); return;
+    beforeChange(c); [arr[li], arr[to]] = [arr[to], arr[li]]; remapProgress(c); admSave('', true); return;
   }
   if(d.admDel != null){
     if(ADM.confirm !== d.admDel){ ADM.confirm = d.admDel; renderAdmin(); return; }
@@ -286,7 +303,7 @@ $('#adminPanel').addEventListener('click', e => {
     beforeChange(c);
     if(kind === 'mod') c.modules.splice(+a, 1);
     if(kind === 'les') c.modules[+a].lessons.splice(+bb, 1);
-    remapProgress(c); admSave(kind === 'mod' ? 'Módulo excluído.' : 'Aula excluída.'); return;
+    remapProgress(c); admSave(kind === 'mod' ? 'Módulo excluído.' : 'Aula excluída.', true); return;
   }
   if(d.admNewLesson != null){ openSheet(+d.admNewLesson, null); return; }
   if(d.admEdit){ const [mi, li] = d.admEdit.split(':').map(Number); openSheet(mi, li); return; }
@@ -312,13 +329,14 @@ $('#adminPanel').addEventListener('input', e => {
 });
 $('#adminPanel').addEventListener('change', e => {
   const t = e.target, c = admCourse(); if(!c) return;
-  if(t.dataset.admModname != null){ const v = t.value.trim(); if(v){ c.modules[+t.dataset.admModname].name = v; save(); if(state.user) render(); toast('Nome do módulo salvo.'); } else t.value = c.modules[+t.dataset.admModname].name; }
+  if(t.dataset.admModname != null){ const v = t.value.trim(); if(v){ c.modules[+t.dataset.admModname].name = v; saveContent(); if(state.user) render(); toast('Nome do módulo salvo.'); } else t.value = c.modules[+t.dataset.admModname].name; }
 });
 $('#adminPanel').addEventListener('keydown', e => {
   if(e.key === 'Enter' && e.target.classList.contains('adm-mod-name')){ e.preventDefault(); e.target.blur(); }
   if(e.key === 'Escape'){ e.stopPropagation(); if(ADM.sheet) closeSheet(); else closeAdmin(); }
 });
 $('#adminPanel').addEventListener('submit', e => {
+  if(e.target.id === 'newUserForm'){ e.preventDefault(); createStudent(); return; }
   if(e.target.id !== 'courseForm') return;
   e.preventDefault();
   const c = admCourse(), name = $('#cfName').value.trim();
@@ -356,3 +374,66 @@ $('#admImport').addEventListener('change', async e => {
     admSave(`Conteúdo importado: ${plural(courses.length, 'curso', 'cursos')}.`);
   } catch(err){ toast('Arquivo inválido. Use um arquivo exportado pelo Master.'); }
 });
+
+/* ---------------- alunos (só com banco de dados) ---------------- */
+function genPass(){ const a = 'abcdefghjkmnpqrstuvwxyz23456789'; const r = new Uint32Array(8); crypto.getRandomValues(r); return [...r].map(x => a[x % a.length]).join(''); }
+function copyText(t, ok){ (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast(ok)).catch(() => toast(t)); }
+function siteUrl(){ return location.origin + location.pathname; }
+function accessMessage(u){ return u ? `Olá, ${u.name.split(' ')[0]}! Seu acesso à ELITE Academy está pronto.\n\nSite: ${siteUrl()}\nE-mail: ${u.email}\nSenha: ${u.password}\n\nDepois de entrar, você pode trocar a senha em Perfil.` : ''; }
+function fmtDate(s){ if(!s) return 'nunca'; const d = new Date(s.replace(' ', 'T') + 'Z'); return isNaN(d) ? s : d.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}); }
+async function loadUsers(){
+  try { const {users} = await api('/admin/users'); ADM.users = users; }
+  catch(err){ ADM.users = []; toast(err.message); }
+  if(ADM.view === 'students') renderAdmin();
+}
+function studentsView(){
+  const total = state.courses.filter(c => !c.locked).reduce((a, c) => a + lessonsOf(c).length, 0);
+  const created = ADM.created ? `<div class="adm-created">
+      <div><span class="kicker">Aluno criado</span><p>Envie o acesso para <b>${esc(ADM.created.name)}</b>:</p>
+      <pre>${esc(accessMessage(ADM.created))}</pre></div>
+      <div class="adm-created-actions"><button class="btn btn-primary" data-adm="copy-access">${ic('copy')} Copiar mensagem</button><button class="btn btn-ghost" data-adm="dismiss-created">Fechar</button></div>
+    </div>` : '';
+  const list = ADM.users == null ? '<p class="muted">Carregando alunos...</p>'
+    : ADM.users.length ? ADM.users.map(u => {
+      const pct = total ? Math.min(100, Math.round(u.completed.length / total * 100)) : 0;
+      const delKey = 'user:' + u.id, conf = ADM.confirm === delKey, isMe = u.email === state.user?.email;
+      return `<div class="stu">
+        <span class="avatar">${esc((u.name || '?').charAt(0).toUpperCase())}</span>
+        <div class="stu-main"><b>${esc(u.name)} ${u.role === 'admin' ? '<span class="tag tag-ok">Master</span>' : ''}</b><small>${esc(u.email)}${u.phone ? ' · ' + esc(u.phone) : ''}</small>
+          <div class="stu-meta"><span>${ic('clock')} Último acesso: ${esc(fmtDate(u.lastLogin))}</span><span>${ic('check')} ${plural(u.completed.length, 'aula concluída', 'aulas concluídas')}</span>${u.questions ? `<span>${ic('chat')} ${plural(u.questions, 'dúvida', 'dúvidas')}</span>` : ''}</div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          ${ADM.resetId === u.id ? `<div class="stu-reset"><input id="rp-${u.id}" placeholder="Nova senha (mín. 6)" value="${genPass()}" aria-label="Nova senha de ${esc(u.name)}"><button class="btn btn-primary" data-user-reset-save="${u.id}">Salvar senha</button></div>` : ''}
+        </div>
+        <div class="adm-row-actions">
+          <button class="btn btn-ghost" data-user-reset="${u.id}">${ic('lock')} Nova senha</button>
+          ${isMe ? '' : `<button class="icon-btn adm-del${conf ? ' confirming' : ''}" data-user-del="${u.id}" aria-label="${conf ? 'Confirmar exclusão' : 'Remover aluno'}">${conf ? '<span>Confirmar?</span>' : ic('trash')}</button>`}
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty">Nenhum aluno ainda. Cadastre o primeiro acima.</div>';
+  return `
+    <div class="adm-head"><div><span class="kicker">Gestão de acessos</span><h1 class="display">Alunos</h1><p class="muted">${ADM.users ? plural(ADM.users.filter(u => u.role !== 'admin').length, 'aluno cadastrado', 'alunos cadastrados') : ''}</p></div></div>
+    ${created}
+    <form class="sheet-block adm-newuser" id="newUserForm" autocomplete="off">
+      <div class="sheet-block-head">${ic('plus')} <b>Cadastrar aluno</b><span class="muted">Crie o acesso e envie a mensagem pronta para o aluno</span></div>
+      <div class="form-row"><div><label for="nuName">Nome</label><input id="nuName" placeholder="Nome do aluno"></div><div><label for="nuEmail">E-mail</label><input id="nuEmail" type="email" inputmode="email" placeholder="aluno@email.com"></div></div>
+      <div class="form-row"><div><label for="nuPhone">Telefone <small>opcional</small></label><input id="nuPhone" type="tel" placeholder="(00) 00000-0000"></div>
+        <div><label for="nuPass">Senha inicial</label><div class="pass-gen"><input id="nuPass" value="${genPass()}" autocomplete="new-password"><button type="button" class="btn btn-ghost" data-adm="gen-pass" aria-label="Gerar outra senha">${ic('progress')}</button></div></div></div>
+      <button class="btn btn-primary" type="submit" style="margin-top:18px">${ic('plus')} Cadastrar aluno</button>
+    </form>
+    <div class="stu-list">${list}</div>`;
+}
+async function createStudent(){
+  const body = {name: $('#nuName').value.trim(), email: $('#nuEmail').value.trim(), phone: $('#nuPhone').value.trim(), password: $('#nuPass').value.trim()};
+  try { await api('/admin/users', 'POST', body); ADM.created = body; toast('Aluno cadastrado!'); await loadUsers(); }
+  catch(err){ toast(err.message); }
+}
+async function resetPassword(id){
+  const v = $('#rp-' + id).value.trim();
+  try {
+    await api('/admin/users/' + id, 'PATCH', {password: v});
+    const u = ADM.users.find(x => x.id === id); ADM.resetId = null;
+    ADM.created = u ? {name: u.name, email: u.email, password: v} : null;
+    toast('Senha alterada.'); renderAdmin();
+  } catch(err){ toast(err.message); }
+}
+document.addEventListener('content-saved', () => { if(!$('#adminPanel').classList.contains('hidden') && $('.adm-banner.warn')) renderAdmin(); });
