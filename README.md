@@ -8,19 +8,17 @@
 5. Faça o deploy.
 
 ## Acesso demonstrativo
-- A tela inicial solicita nome e senha.
-- Senha de demonstração: `1989`.
-- Telefone é opcional.
-- O botão de engrenagem no canto superior direito abre o painel de gestão.
+- A tela inicial pede nome e senha (senha de demonstração: `1989`). Telefone é opcional.
+- A **Área Master** fica no rodapé (link discreto), na tela de login e dentro da plataforma.
 
 ## O que já está no protótipo
-- Dashboard responsivo dark + verde neon.
-- Cards promocionais fictícios e vitrine de cursos.
-- Cursos de exemplo, incluindo **Método LP**.
-- Página interna de curso com módulos, videoaulas, PDFs e aulas em texto.
-- Painel para adicionar cursos e conteúdos por URL.
-- Cursos bloqueados e tela de checkout demonstrativa.
-- Biblioteca de materiais e progresso visual.
+- **Início "Sua jornada"**: saudação, card "Continue de onde parou", números de progresso, cursos em pôster, cursos para desbloquear e nível do aluno.
+- **Cursos em formato de série**: módulos como temporadas e aulas como episódios, com duração e marca de concluída.
+- **Tela de aula**: player, lista de aulas, abas de descrição, materiais, anotações e dúvidas, próxima aula automática.
+- **Página de venda** para cursos bloqueados: trailer, "o que você vai aprender", conteúdo e botão de checkout.
+- **Evolução**: níveis (Membro → Elite → Master), sequência de dias, calendário de estudo e certificados para imprimir/salvar em PDF.
+- **Perfil**, **Materiais** (PDFs) e busca.
+- Celular: barra de navegação inferior.
 - Dados salvos no `localStorage` do navegador.
 
 ## Importante antes de vender

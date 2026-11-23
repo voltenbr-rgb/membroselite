@@ -1,469 +1,741 @@
-const $ = (s, root = document) => root.querySelector(s);
-const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+/* ==================================================================
+   ELITE Academy — protótipo da área de membros
+   Tudo roda no navegador (localStorage). Rotas por hash: #/inicio,
+   #/cursos, #/curso/ID, #/aula/ID/M/A, #/oferta/ID, #/biblioteca,
+   #/evolucao, #/perfil
+   ================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const STORE_KEY = 'eliteAcademyDemoV1';
 const DEMO_PASSWORD = '1989';
-const DEFAULT_COVERS = { 'metodo-lp': 'assets/elite-academy-cover.svg' };
-
-const initialCourses = [
- {id:'metodo-lp',name:'Método LP',desc:'Aprenda a estruturar sua presença digital e transformar atenção em oportunidades.',color:'green',tag:'MÉTODO EXCLUSIVO',code:'LP',locked:false,progress:38,modules:[
-  {name:'Módulo 01 — Fundamentos',lessons:[
-   {title:'Boas-vindas ao Método LP',type:'video',url:'https://www.youtube.com/watch?v=ysz5S6PUM-U',body:'Uma visão geral da jornada, dos objetivos e de como aproveitar melhor o treinamento.'},
-   {title:'Mentalidade e preparação',type:'text',body:'Antes de executar, defina seu objetivo, conheça seu público e organize uma rotina simples de aplicação. Anote suas metas e acompanhe sua evolução.'},
-   {title:'Checklist de início rápido',type:'pdf',url:'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',body:'Material demonstrativo para organizar os primeiros passos.'}
-  ]},
-  {name:'Módulo 02 — Estratégia',lessons:[
-   {title:'Construindo uma oferta clara',type:'video',url:'https://www.youtube.com/watch?v=jfKfPfyJRdk',body:'Aprenda a apresentar valor de forma simples e objetiva.'},
-   {title:'Conteúdo que gera conexão',type:'text',body:'Crie conteúdos que respondam dúvidas reais, demonstrem benefícios e conduzam o público para o próximo passo.'}
-  ]},
-  {name:'Módulo 03 — Aplicação prática',lessons:[
-   {title:'Plano de ação de 7 dias',type:'text',body:'Dia 1: planejar. Dias 2 e 3: produzir. Dias 4 e 5: publicar e conversar. Dias 6 e 7: analisar e ajustar.'}
-  ]}
- ]},
- {id:'digital-scale',name:'Digital Scale Pro',desc:'Processos e estratégias para organizar e escalar negócios no digital.',color:'purple',tag:'ESCALA & PERFORMANCE',code:'DS',locked:false,progress:16,modules:[
-  {name:'Módulo 01 — Estrutura',lessons:[{title:'O mapa da escala digital',type:'video',url:'https://www.youtube.com/watch?v=ysz5S6PUM-U',body:'Conheça os pilares de uma operação digital organizada.'},{title:'Organização de processos',type:'text',body:'Documente tarefas recorrentes, defina responsáveis e acompanhe indicadores simples.'}]},
-  {name:'Módulo 02 — Crescimento',lessons:[{title:'Indicadores essenciais',type:'text',body:'Acompanhe aquisição, conversão, retenção e satisfação para decidir com clareza.'}]}
- ]},
- {id:'design-magnetico',name:'Design Magnético',desc:'Design, identidade visual e criativos que valorizam sua marca.',color:'blue',tag:'CRIATIVIDADE & MARCA',code:'DM',locked:false,progress:12,modules:[
-  {name:'Módulo 01 — Direção visual',lessons:[{title:'Princípios de um visual forte',type:'video',url:'https://www.youtube.com/watch?v=ysz5S6PUM-U',body:'Explore hierarquia, contraste, consistência e clareza visual.'},{title:'Guia de identidade',type:'pdf',url:'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',body:'Guia demonstrativo de identidade visual.'}]},
-  {name:'Módulo 02 — Criativos',lessons:[{title:'Composição para redes sociais',type:'text',body:'Comece por uma mensagem principal, use poucos elementos e mantenha contraste suficiente para leitura.'}]}
- ]},
- {id:'trafego-elite',name:'Tráfego Elite',desc:'Fundamentos de campanhas, públicos e análise de resultados.',color:'orange',tag:'ACESSO PREMIUM',code:'TE',locked:true,progress:0,modules:[]},
- {id:'copy-pro',name:'Copywriting Pro',desc:'Escrita persuasiva, ofertas e comunicação que conecta.',color:'purple',tag:'ACESSO PREMIUM',code:'CP',locked:true,progress:0,modules:[]},
- {id:'automacao',name:'Automação Inteligente',desc:'Ganhe tempo com fluxos e processos digitais.',color:'green',tag:'ACESSO PREMIUM',code:'AI',locked:true,progress:0,modules:[]}
+const LEVELS = [
+  {name: 'Membro', min: 0},
+  {name: 'Elite', min: 5},
+  {name: 'Master', min: 15}
 ];
 
-/* ---------------- Estado ---------------- */
-let state = loadState();
-let currentCourse = null;
-let currentLesson = null;          // {mi, li}
-let openModules = new Set();
-let heroIndex = 0;
-let courseFilter = 'all';
-let searchTerm = '';
+const initialCourses = [
+ {id:'metodo-lp',name:'Método LP',desc:'Aprenda a estruturar sua presença digital e transformar atenção em oportunidades.',color:'green',tag:'MÉTODO EXCLUSIVO',code:'LP',locked:false,
+  learn:['Estruturar sua presença digital do zero','Criar uma oferta clara e atraente','Produzir conteúdo que gera conexão','Executar um plano de ação de 7 dias'],
+  modules:[
+  {name:'Módulo 01 — Fundamentos',lessons:[
+   {title:'Boas-vindas ao Método LP',type:'video',min:8,url:'https://www.youtube.com/watch?v=ysz5S6PUM-U',body:'Uma visão geral da jornada, dos objetivos e de como aproveitar melhor o treinamento.'},
+   {title:'Mentalidade e preparação',type:'text',min:6,body:'Antes de executar, defina seu objetivo, conheça seu público e organize uma rotina simples de aplicação. Anote suas metas e acompanhe sua evolução.'},
+   {title:'Checklist de início rápido',type:'pdf',min:5,url:'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',body:'Material demonstrativo para organizar os primeiros passos.'}
+  ]},
+  {name:'Módulo 02 — Estratégia',lessons:[
+   {title:'Construindo uma oferta clara',type:'video',min:14,url:'https://www.youtube.com/watch?v=jfKfPfyJRdk',body:'Aprenda a apresentar valor de forma simples e objetiva.'},
+   {title:'Conteúdo que gera conexão',type:'text',min:7,body:'Crie conteúdos que respondam dúvidas reais, demonstrem benefícios e conduzam o público para o próximo passo.'}
+  ]},
+  {name:'Módulo 03 — Aplicação prática',lessons:[
+   {title:'Plano de ação de 7 dias',type:'text',min:10,body:'Dia 1: planejar.\nDias 2 e 3: produzir.\nDias 4 e 5: publicar e conversar.\nDias 6 e 7: analisar e ajustar.'}
+  ]}
+ ]},
+ {id:'digital-scale',name:'Digital Scale Pro',desc:'Processos e estratégias para organizar e escalar negócios no digital.',color:'purple',tag:'ESCALA & PERFORMANCE',code:'DS',locked:false,
+  learn:['Mapear os pilares da sua operação','Organizar processos e responsáveis','Acompanhar os indicadores que importam'],
+  modules:[
+  {name:'Módulo 01 — Estrutura',lessons:[{title:'O mapa da escala digital',type:'video',min:12,url:'https://www.youtube.com/watch?v=ysz5S6PUM-U',body:'Conheça os pilares de uma operação digital organizada.'},{title:'Organização de processos',type:'text',min:6,body:'Documente tarefas recorrentes, defina responsáveis e acompanhe indicadores simples.'}]},
+  {name:'Módulo 02 — Crescimento',lessons:[{title:'Indicadores essenciais',type:'text',min:8,body:'Acompanhe aquisição, conversão, retenção e satisfação para decidir com clareza.'}]}
+ ]},
+ {id:'design-magnetico',name:'Design Magnético',desc:'Design, identidade visual e criativos que valorizam sua marca.',color:'blue',tag:'CRIATIVIDADE & MARCA',code:'DM',locked:false,
+  learn:['Princípios de hierarquia e contraste','Montar um guia de identidade simples','Criar criativos para redes sociais'],
+  modules:[
+  {name:'Módulo 01 — Direção visual',lessons:[{title:'Princípios de um visual forte',type:'video',min:11,url:'https://www.youtube.com/watch?v=ysz5S6PUM-U',body:'Explore hierarquia, contraste, consistência e clareza visual.'},{title:'Guia de identidade',type:'pdf',min:4,url:'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',body:'Guia demonstrativo de identidade visual.'}]},
+  {name:'Módulo 02 — Criativos',lessons:[{title:'Composição para redes sociais',type:'text',min:7,body:'Comece por uma mensagem principal, use poucos elementos e mantenha contraste suficiente para leitura.'}]}
+ ]},
+ {id:'trafego-elite',name:'Tráfego Elite',desc:'Fundamentos de campanhas, públicos e análise de resultados.',color:'orange',tag:'ACESSO PREMIUM',code:'TE',locked:true,
+  learn:['Estruturar campanhas do zero','Definir e testar públicos','Ler os números e otimizar resultados'],modules:[]},
+ {id:'copy-pro',name:'Copywriting Pro',desc:'Escrita persuasiva, ofertas e comunicação que conecta.',color:'purple',tag:'ACESSO PREMIUM',code:'CP',locked:true,
+  learn:['Escrever títulos que prendem a atenção','Estruturar páginas e mensagens de venda','Adaptar a comunicação a cada canal'],modules:[]},
+ {id:'automacao',name:'Automação Inteligente',desc:'Ganhe tempo com fluxos e processos digitais.',color:'green',tag:'ACESSO PREMIUM',code:'AI',locked:true,
+  learn:['Identificar tarefas que podem ser automatizadas','Montar fluxos simples de atendimento','Integrar ferramentas do dia a dia'],modules:[]}
+];
 
+/* ------------------------------------------------------------------
+   Estado
+   ------------------------------------------------------------------ */
+let state = loadState();
+let filter = 'all';
+let searchTerm = '';
+let season = {};            // módulo aberto por curso
+let lessonTab = 'about';
+let autoNextTimer = null;
+
+function clone(x){ return JSON.parse(JSON.stringify(x)); }
 function loadState(){
-  try{ const s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s && s.courses) return {completed:[], ...s}; }catch(e){}
-  return {courses: JSON.parse(JSON.stringify(initialCourses)), completed: [], user: null};
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e) {}
+  if(!s || !Array.isArray(s.courses)) s = {courses: clone(initialCourses), completed: [], user: null};
+  s.completed ||= []; s.days ||= []; s.notes ||= {}; s.questions ||= {};
+  // completa dados novos (duração, "o que vai aprender") em cursos de exemplo já salvos
+  s.courses.forEach(c => {
+    const base = initialCourses.find(b => b.id === c.id);
+    if(!base) return;
+    if(!c.learn) c.learn = base.learn;
+    c.modules.forEach((m, mi) => m.lessons.forEach((l, li) => {
+      const bl = base.modules[mi]?.lessons[li];
+      if(bl && bl.title === l.title && l.min == null) l.min = bl.min;
+    }));
+  });
+  return s;
 }
 function save(){
-  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); return true; }
-  catch(e){ console.warn('Não foi possível salvar os dados neste navegador:', e); return false; }
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); return true; }
+  catch(e){ console.warn('Não foi possível salvar neste navegador:', e); return false; }
 }
 
-/* ---------------- Utilitários ---------------- */
-function safe(s = ''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function icon(name, cls = ''){ return `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`; }
-function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2600); }
+/* ------------------------------------------------------------------
+   Utilitários
+   ------------------------------------------------------------------ */
+function esc(s = ''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ic(name, cls = ''){ return `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`; }
 function pad(n){ return String(n).padStart(2, '0'); }
-function niceTag(t = ''){ const s = String(t).toLocaleLowerCase('pt-BR'); return s.charAt(0).toLocaleUpperCase('pt-BR') + s.slice(1); }
+function cap(t = ''){ const s = String(t).toLocaleLowerCase('pt-BR'); return s.charAt(0).toLocaleUpperCase('pt-BR') + s.slice(1); }
+function firstName(){ return (state.user?.name || 'Aluno').trim().split(/\s+/)[0]; }
+function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2600); }
 function safeUrl(u){
   u = String(u || '').trim();
   if(!/^(https?:\/\/|assets\/)/i.test(u)) return '';
   return u.replace(/["'()\\\s<>]/g, encodeURIComponent);
 }
-function lessonKey(c, mi, li){ return `${c.id}-${mi}-${li}`; }
-function lessonsOf(c){ const out = []; c.modules.forEach((m, mi) => m.lessons.forEach((l, li) => out.push({mi, li, l, key: lessonKey(c, mi, li)}))); return out; }
-function courseStats(c){
-  const all = lessonsOf(c);
-  const done = all.filter(x => state.completed.includes(x.key)).length;
-  const pct = all.length ? Math.round(done / all.length * 100) : 0;
-  return {total: all.length, done, pct};
+function fmtMin(m){
+  m = Math.round(m || 0); if(!m) return '';
+  if(m < 60) return `${m} min`;
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? `${h}h ${pad(r)}min` : `${h}h`;
 }
-function nextLesson(c){ const all = lessonsOf(c); return all.find(x => !state.completed.includes(x.key)) || all[0] || null; }
+function todayISO(d = new Date()){ return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
+function plural(n, one, many){ return `${n} ${n === 1 ? one : many}`; }
 function typeLabel(t){ return t === 'video' ? 'Videoaula' : t === 'pdf' ? 'Material PDF' : 'Aula em texto'; }
-function typeIcon(t){ return t === 'video' ? 'video' : t === 'pdf' ? 'file' : 'text'; }
-function coverHTML(c){
-  const url = safeUrl(c.coverUrl || DEFAULT_COVERS[c.id]);
-  if(url) return `<div class="cover" style="background-image:url('${url}')"></div>`;
-  return `<div class="cover cover-gen c-${safe(c.color || 'green')}"><span class="cover-code">${safe(c.code || '')}</span></div>`;
-}
-function unlocked(){ return state.courses.filter(c => !c.locked); }
-
-/* ---------------- Cards ---------------- */
-function courseCard(c){
-  const s = courseStats(c);
-  const badge = c.locked
-    ? `<span class="pill pill-glass thumb-badge">${icon('lock')} Bloqueado</span>`
-    : (s.pct === 100 ? `<span class="pill pill-glass thumb-badge">${icon('check')} Concluído</span>` : '');
-  const bar = !c.locked && s.pct > 0 && s.pct < 100 ? `<div class="thumb-progress"><i style="width:${s.pct}%"></i></div>` : '';
-  const play = c.locked ? '' : `<span class="thumb-play">${icon('play')}</span>`;
-  const sub = c.locked ? 'Toque para desbloquear' : (s.total ? `${s.done}/${s.total} aulas · ${s.pct}% concluído` : 'Conteúdo em breve');
-  return `<button class="course-card${c.locked ? ' locked' : ''}" data-course="${safe(c.id)}" aria-label="${safe(c.name)}">
-    <div class="thumb">${coverHTML(c)}${badge}${bar}${play}</div>
-    <div class="card-meta"><h3>${safe(c.name)}</h3><span class="pill">${icon('tag')}${safe(niceTag(c.tag))}</span></div>
-    <p class="card-sub">${sub}</p>
-  </button>`;
-}
-function progressItem(c){
-  const s = courseStats(c);
-  const n = nextLesson(c);
-  const line = s.total === 0 ? '<small>Conteúdo em breve</small>'
-    : s.pct === 100 ? '<small class="on">Concluído</small>'
-    : `<small class="${s.done ? 'on' : ''}">${s.done ? 'Em andamento' : 'Não iniciado'}${n ? ' · ' + safe(n.l.title) : ''}</small>`;
-  return `<button class="p-item" data-course="${safe(c.id)}">
-    <span class="p-thumb">${coverHTML(c)}</span>
-    <span class="p-body"><b>${safe(c.name)}</b>${line}<span class="progress-line"><i style="width:${s.pct}%"></i></span></span>
-    <span class="p-pct">${s.pct}%</span>
-  </button>`;
+function typeIcon(t){ return t === 'video' ? 'play' : t === 'pdf' ? 'file' : 'text'; }
+function embedUrl(url){
+  const u = safeUrl(url); if(!u) return '';
+  const yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{6,})/);
+  if(yt) return 'https://www.youtube.com/embed/' + yt[1] + '?rel=0';
+  const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if(vm) return 'https://player.vimeo.com/video/' + vm[1];
+  return u;
 }
 
-/* ---------------- Destaque (hero) ---------------- */
-function heroHTML(c, {detail = false, list = []} = {}){
-  const s = courseStats(c);
-  const n = nextLesson(c);
-  const hasVideo = lessonsOf(c).some(x => x.l.type === 'video');
-  const hasPdf = lessonsOf(c).some(x => x.l.type === 'pdf');
-  const cta = c.locked ? `${icon('lock')} Desbloquear curso`
-    : !s.total ? 'Ver curso'
-    : s.pct === 100 ? `${icon('play', 'ic-fill')} Rever curso`
-    : s.done ? `${icon('play', 'ic-fill')} Continuar curso` : `${icon('play', 'ic-fill')} Começar curso`;
-  const nav = !detail && list.length > 1 ? `<div class="hero-nav"><button data-hero="-1" aria-label="Curso anterior">${icon('chevron-left')}</button><button data-hero="1" aria-label="Próximo curso">${icon('chevron-right')}</button></div>` : '';
-  const dots = !detail && list.length > 1 ? `<div class="hero-dots">${list.map((x, i) => `<button data-hero-go="${i}" class="${i === heroIndex ? 'active' : ''}" aria-label="Destaque ${i + 1}"></button>`).join('')}</div>` : '';
-  const nextChip = !c.locked && n ? `<span class="pill pill-glass">${icon('play')} ${s.done ? 'Próxima' : 'Primeira aula'}: ${safe(n.l.title)}</span>` : '<span></span>';
-  return `<div class="hero-banner">
-      ${coverHTML(c)}
-      <div class="hero-top"><span class="pill pill-glass">${safe(niceTag(c.tag))}</span>${c.modules.length ? `<span class="pill pill-glass">${icon('layers')} ${c.modules.length} ${c.modules.length === 1 ? 'módulo' : 'módulos'}</span>` : ''}</div>
-      <div class="hero-bottom">${nextChip}${nav}</div>
+/* ------------------------------------------------------------------
+   Regras: progresso, sequência, nível
+   ------------------------------------------------------------------ */
+const key = (c, mi, li) => `${c.id}-${mi}-${li}`;
+const findCourse = id => state.courses.find(c => c.id === id);
+const openCourses = () => state.courses.filter(c => !c.locked);
+const lockedCourses = () => state.courses.filter(c => c.locked);
+function lessonsOf(c){ const o = []; c.modules.forEach((m, mi) => m.lessons.forEach((l, li) => o.push({c, m, mi, li, l, k: key(c, mi, li)}))); return o; }
+const isDone = k => state.completed.includes(k);
+function stats(c){
+  const all = lessonsOf(c), done = all.filter(x => isDone(x.k));
+  const total = all.length, mins = all.reduce((a, x) => a + (x.l.min || 0), 0);
+  const left = all.filter(x => !isDone(x.k)).reduce((a, x) => a + (x.l.min || 0), 0);
+  return {total, done: done.length, pct: total ? Math.round(done.length / total * 100) : 0, mins, left};
+}
+function nextOf(c){ const all = lessonsOf(c); return all.find(x => !isDone(x.k)) || all[0] || null; }
+function resumeTarget(){
+  // curso com aula concluída mais recente que ainda não acabou; senão o primeiro liberado com aulas
+  const last = [...state.completed].reverse().map(k => openCourses().find(c => k.startsWith(c.id + '-'))).find(c => c && stats(c).pct < 100);
+  const c = last || openCourses().find(c => stats(c).total && stats(c).pct < 100) || openCourses().find(c => stats(c).total);
+  return c ? {c, n: nextOf(c)} : null;
+}
+function markStudy(){ const t = todayISO(); if(!state.days.includes(t)){ state.days.push(t); state.days = state.days.slice(-120); save(); } }
+function streak(){
+  const set = new Set(state.days); let d = new Date(), n = 0;
+  if(!set.has(todayISO(d))) d.setDate(d.getDate() - 1);
+  while(set.has(todayISO(d))){ n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function totals(){
+  return openCourses().reduce((a, c) => { const s = stats(c); a.total += s.total; a.done += s.done; if(s.total && s.pct === 100) a.finished.push(c); return a; }, {total: 0, done: 0, finished: []});
+}
+function level(){
+  const d = state.completed.length;
+  let i = 0; LEVELS.forEach((l, idx) => { if(d >= l.min) i = idx; });
+  const cur = LEVELS[i], nxt = LEVELS[i + 1];
+  const pct = nxt ? Math.round((d - cur.min) / (nxt.min - cur.min) * 100) : 100;
+  return {i, cur, nxt, pct, toNext: nxt ? nxt.min - d : 0};
+}
+function greeting(){ const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; }
+
+/* ------------------------------------------------------------------
+   Peças visuais reaproveitadas
+   ------------------------------------------------------------------ */
+function art(c){
+  const u = safeUrl(c.coverUrl);
+  if(u) return `<div class="art" style="background-image:url('${u}')"></div>`;
+  return `<div class="art art-gen g-${esc(c.color || 'green')}"><span class="art-code">${esc(c.code || '')}</span></div>`;
+}
+function poster(c){
+  const s = stats(c);
+  const label = c.locked ? 'PARA DESBLOQUEAR' : s.pct === 100 ? 'CONCLUÍDO' : s.done ? 'EM ANDAMENTO' : 'ELITE ORIGINAL';
+  const href = c.locked ? `#/oferta/${encodeURIComponent(c.id)}` : `#/curso/${encodeURIComponent(c.id)}`;
+  const sub = c.locked ? `<span>${esc(cap(c.tag))}</span><b>Ver detalhes</b>`
+    : s.total ? `<span>${plural(c.modules.length, 'módulo', 'módulos')} · ${plural(s.total, 'aula', 'aulas')}</span><b>${s.pct}%</b>` : '<span>Conteúdo em breve</span>';
+  return `<a class="poster${c.locked ? ' locked' : ''}" href="${href}" aria-label="${esc(c.name)}">
+    <div class="poster-art">${art(c)}
+      <div class="poster-top"><span class="poster-label">${label}</span>${c.locked ? `<span class="poster-lock">${ic('lock')}</span>` : ''}</div>
+      <h3 class="poster-title">${esc(c.name)}</h3>
+      ${!c.locked ? `<div class="poster-bar"><div class="bar"><i style="width:${s.pct}%"></i></div></div>` : ''}
     </div>
-    <div class="hero-info">
-      <h2>${safe(c.name)}</h2>
-      <p class="by">ELITE Academy</p>
-      ${detail ? `<p class="desc">${safe(c.desc)}</p>` : ''}
-      <div class="tag-list">
-        <span class="pill">${icon('courses')} ${s.total} ${s.total === 1 ? 'aula' : 'aulas'}</span>
-        ${hasVideo ? `<span class="pill">${icon('video')} Vídeo</span>` : ''}
-        ${hasPdf ? `<span class="pill">${icon('file')} PDF</span>` : ''}
-      </div>
-      ${c.locked ? '' : `<div class="progress-label"><span>Seu progresso</span><b>${s.pct}%</b></div><div class="progress-line"><i style="width:${s.pct}%"></i></div>`}
-      <button class="btn btn-primary full" data-continue="${safe(c.id)}">${cta}</button>
-      ${dots}
-    </div>`;
+    <div class="poster-sub">${sub}</div>
+  </a>`;
 }
-function renderHero(){
-  const list = unlocked().length ? unlocked() : state.courses;
-  if(!list.length){ $('#hero').innerHTML = ''; return; }
-  heroIndex = (heroIndex + list.length) % list.length;
-  $('#hero').innerHTML = heroHTML(list[heroIndex], {list});
+function priceHTML(c, big = false){
+  if(!c.price) return big ? '<div class="price price-text">Valor sob consulta</div>' : '<span></span>';
+  const [r, cts = '00'] = String(c.price).replace(/[^\d,]/g, '').split(',');
+  return big ? `<div class="price"><small>R$</small> ${esc(r)}<small>,${esc(cts.padEnd(2, '0').slice(0, 2))}</small></div>` : `<span class="offer-price">R$ ${esc(r)},${esc(cts.padEnd(2, '0').slice(0, 2))}</span>`;
 }
-
-/* ---------------- Renderização das páginas ---------------- */
-function renderHome(){
-  renderHero();
-  const open = unlocked();
-  const continueList = open.filter(c => courseStats(c).pct < 100);
-  const rowC = continueList.length ? continueList : open;
-  $('#rowContinue').innerHTML = rowC.length ? rowC.map(courseCard).join('') : '<div class="row-empty">Nenhum curso liberado ainda.</div>';
-  const locked = state.courses.filter(c => c.locked);
-  $('#rowLocked').innerHTML = locked.length ? locked.map(courseCard).join('') : '<div class="row-empty">Você já tem acesso a todos os cursos.</div>';
-  $('#progressList').innerHTML = open.length ? open.map(progressItem).join('') : '<p class="module-empty">Seus cursos liberados aparecerão aqui.</p>';
+function offer(c){
+  return `<a class="offer" href="#/oferta/${encodeURIComponent(c.id)}">${art(c)}
+    <span class="chip chip-glass">${ic('lock')} ${esc(cap(c.tag))}</span>
+    <h3>${esc(c.name)}</h3><p>${esc(c.desc)}</p>
+    <div class="offer-foot">${priceHTML(c)}<span class="offer-cta">Desbloquear ${ic('arrow-right')}</span></div>
+  </a>`;
 }
-function matchesFilter(c){
-  const s = courseStats(c);
-  if(courseFilter === 'locked' && !c.locked) return false;
-  if(courseFilter === 'progress' && (c.locked || s.pct === 100)) return false;
-  if(courseFilter === 'done' && (c.locked || s.pct < 100 || !s.total)) return false;
-  if(searchTerm){
-    const hay = [c.name, c.desc, c.tag, ...lessonsOf(c).map(x => x.l.title)].join(' ').toLocaleLowerCase('pt-BR');
-    if(!hay.includes(searchTerm)) return false;
-  }
-  return true;
+function cpItem(c){
+  const s = stats(c), n = nextOf(c);
+  return `<a class="cp-item" href="#/curso/${encodeURIComponent(c.id)}">
+    <span class="cp-thumb">${art(c)}</span>
+    <span><b>${esc(c.name)}</b><span class="bar"><i style="width:${s.pct}%"></i></span>
+      <small class="muted" style="display:block;margin-top:6px;font-size:13px">${s.total ? `${s.done} de ${s.total} aulas${s.pct < 100 && n ? ' · próxima: ' + esc(n.l.title) : ''}` : 'Conteúdo em breve'}</small></span>
+    <span class="cp-pct">${s.pct}%</span>
+  </a>`;
 }
-function renderCourses(){
-  const list = state.courses.filter(matchesFilter);
-  $('#allCourses').innerHTML = list.map(courseCard).join('');
-  $('#coursesEmpty').classList.toggle('hidden', list.length > 0);
-  $('#coursesEmpty').textContent = searchTerm ? `Nenhum curso encontrado para “${searchTerm}”.` : 'Nenhum curso nesta categoria.';
-  $('#courseCount').textContent = `${list.length} de ${state.courses.length} treinamentos`;
-  $$('[data-filter]').forEach(b => b.classList.toggle('active', b.dataset.filter === courseFilter));
-}
-function renderLibrary(){
-  const items = [];
-  state.courses.forEach(c => { if(c.locked) return; lessonsOf(c).forEach(x => { if(x.l.type === 'pdf' && safeUrl(x.l.url)) items.push({c, ...x}); }); });
-  $('#libraryContent').innerHTML = items.length ? items.map(i => `<article class="library-item"><div class="file-icon">${icon('file')}</div><h3>${safe(i.l.title)}</h3><p>${safe(i.c.name)} · ${safe(i.l.body || 'Material de apoio')}</p><a href="${safe(safeUrl(i.l.url))}" target="_blank" rel="noopener">Abrir material ${icon('external')}</a></article>`).join('')
-    : '<div class="panel-note">Seus PDFs e materiais de apoio aparecerão aqui quando forem adicionados aos cursos.</div>';
-}
-function renderProgressPage(){
-  const open = unlocked();
-  const totals = open.reduce((a, c) => { const s = courseStats(c); a.t += s.total; a.d += s.done; if(s.pct === 100 && s.total) a.f++; return a; }, {t: 0, d: 0, f: 0});
-  const avg = totals.t ? Math.round(totals.d / totals.t * 100) : 0;
-  $('#statsRow').innerHTML = `
-    <div class="stat hl"><b>${avg}%</b><span>Progresso geral</span></div>
-    <div class="stat"><b>${totals.d}</b><span>Aulas concluídas de ${totals.t}</span></div>
-    <div class="stat"><b>${open.length}</b><span>Cursos liberados</span></div>
-    <div class="stat"><b>${totals.f}</b><span>Cursos concluídos</span></div>`;
-  $('#progressFull').innerHTML = open.length ? open.map(progressItem).join('') : '<p class="module-empty">Nenhum curso liberado ainda.</p>';
-}
-function renderAll(){
-  renderHome();
-  renderCourses();
-  renderLibrary();
-  renderProgressPage();
-  if(currentCourse && !$('#coursePage').classList.contains('hidden')) renderCourseDetail();
-}
-
-/* ---------------- Navegação ---------------- */
-const NAV_FOR = {homePage: 'home', coursesPage: 'courses', coursePage: 'courses', libraryPage: 'library', progressPage: 'progress'};
-function showPage(id){
-  $$('.page').forEach(p => p.classList.add('hidden'));
-  $('#' + id).classList.remove('hidden');
-  $$('.nav-item[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === NAV_FOR[id]));
-  $$('.sub-item').forEach(b => b.classList.toggle('active', id === 'coursesPage' && b.dataset.filter === courseFilter));
-  closeSidebar();
-  window.scrollTo(0, 0);
-}
-function goView(view){
-  if(view === 'home'){ renderHome(); showPage('homePage'); }
-  if(view === 'courses'){ renderCourses(); showPage('coursesPage'); }
-  if(view === 'library'){ renderLibrary(); showPage('libraryPage'); }
-  if(view === 'progress'){ renderProgressPage(); showPage('progressPage'); }
-}
-function goFilter(f){ courseFilter = f; $('#coursesGroup').classList.add('open'); renderCourses(); showPage('coursesPage'); }
-function closeSidebar(){ $('#sidebar').classList.remove('open'); $('#sidebarScrim').classList.remove('show'); }
-
-/* ---------------- Curso e aulas ---------------- */
-function openCourse(id, {resume = false} = {}){
-  const c = state.courses.find(x => x.id === id);
-  if(!c) return;
-  if(c.locked){ openCheckout(c); return; }
-  if(currentCourse?.id !== c.id){ openModules = new Set([0]); currentLesson = null; }
-  currentCourse = c;
-  if(resume){ const n = nextLesson(c); if(n){ currentLesson = {mi: n.mi, li: n.li}; openModules.add(n.mi); } }
-  renderCourseDetail();
-  showPage('coursePage');
-  if(resume && currentLesson) requestAnimationFrame(() => $('#lessonArea')?.scrollIntoView({behavior: 'smooth', block: 'start'}));
-}
-function openCheckout(c){
-  $('#lockedCourseName').textContent = c.name;
-  const btn = $('#simulatePay');
-  btn.dataset.checkout = safeUrl(c.checkoutUrl);
-  btn.textContent = c.checkoutUrl ? 'Ir para compra' : 'Checkout em configuração';
-  $('#paymentFeedback').textContent = c.checkoutUrl ? 'Você será direcionado ao checkout oficial.' : '';
-  $('#paymentModal').classList.remove('hidden');
-}
-function renderCourseDetail(){
-  const c = currentCourse;
-  const lessonHTML = currentLesson ? lessonViewHTML(c, currentLesson.mi, currentLesson.li) : '';
-  const modules = c.modules.map((m, mi) => {
-    const done = m.lessons.filter((_, li) => state.completed.includes(lessonKey(c, mi, li))).length;
-    return `<div class="module${openModules.has(mi) ? ' open' : ''}">
-      <button class="module-head" data-module="${mi}" aria-expanded="${openModules.has(mi)}">
-        <span class="module-num">${pad(mi + 1)}</span>
-        <span><h3>${safe(m.name)}</h3><small>${m.lessons.length} ${m.lessons.length === 1 ? 'aula' : 'aulas'} · ${done} concluída${done === 1 ? '' : 's'}</small></span>
-        ${icon('chevron-down', 'caret')}
-      </button>
-      <div class="module-lessons">${m.lessons.map((l, li) => {
-        const key = lessonKey(c, mi, li), isDone = state.completed.includes(key);
-        const isCur = currentLesson && currentLesson.mi === mi && currentLesson.li === li;
-        return `<button class="lesson${isDone ? ' done' : ''}${isCur ? ' current' : ''}" data-lesson="${mi}-${li}">
-          <span class="lesson-icon">${icon(isDone ? 'check' : typeIcon(l.type))}</span>
-          <span class="lesson-info"><b>${safe(l.title)}</b><small>${typeLabel(l.type)}${isDone ? ' · Concluída' : ''}</small></span>
-          ${icon('chevron-right', 'lesson-go')}
-        </button>`;
-      }).join('') || '<p class="module-empty">As aulas deste módulo serão adicionadas em breve.</p>'}</div>
-    </div>`;
-  }).join('');
-  $('#courseDetail').innerHTML = `
-    <div class="hero course-hero">${heroHTML(c, {detail: true})}</div>
-    <div id="lessonArea">${lessonHTML}</div>
-    <div class="row-head"><h2>Módulos</h2><span class="muted">${c.modules.length} ${c.modules.length === 1 ? 'módulo' : 'módulos'}</span></div>
-    <div class="module-list">${modules || '<div class="panel-note">Este curso ainda não possui módulos. Use a Área Master para adicionar conteúdo.</div>'}</div>`;
-}
-function lessonViewHTML(c, mi, li){
-  const l = c.modules[mi]?.lessons[li];
-  if(!l) return '';
-  const key = lessonKey(c, mi, li), isDone = state.completed.includes(key);
-  let media = '';
-  const url = safeUrl(l.url);
-  if(l.type === 'video' && url){
-    let u = url;
-    const yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
-    const vm = u.match(/vimeo\.com\/(\d+)/);
-    if(yt) u = 'https://www.youtube.com/embed/' + yt[1];
-    else if(vm) u = 'https://player.vimeo.com/video/' + vm[1];
-    media = `<div class="player"><iframe src="${safe(u)}" allowfullscreen loading="lazy" title="${safe(l.title)}" allow="autoplay; fullscreen; picture-in-picture"></iframe></div>`;
-  }
-  const all = lessonsOf(c);
-  const idx = all.findIndex(x => x.mi === mi && x.li === li);
-  const next = all[idx + 1];
-  return `<div class="lesson-view">
-    ${media}
-    <span class="pill">${icon(typeIcon(l.type))} ${typeLabel(l.type)} · Módulo ${pad(mi + 1)}</span>
-    <h3 style="margin-top:12px">${safe(l.title)}</h3>
-    <p>${safe(l.body || 'Adicione uma descrição para esta aula pela Área Master.')}</p>
-    <div class="lesson-actions">
-      ${l.type === 'pdf' && url ? `<a class="btn btn-ghost" href="${safe(url)}" target="_blank" rel="noopener">${icon('external')} Abrir material</a>` : ''}
-      <button class="btn ${isDone ? 'btn-ghost' : 'btn-primary'}" id="markComplete">${icon('check')} ${isDone ? 'Aula concluída' : 'Marcar como concluída'}</button>
-      ${next ? `<button class="btn btn-ghost" id="nextLesson" data-next="${next.mi}-${next.li}">Próxima aula ${icon('chevron-right')}</button>` : ''}
+function levelCard(){
+  const L = level();
+  return `<div class="level-card">
+    <div class="level-badge">${ic(L.i === 2 ? 'star' : 'award')}</div>
+    <div>
+      <span class="kicker">Seu nível</span>
+      <h3>${L.cur.name}</h3>
+      <p>${L.nxt ? `Faltam ${plural(L.toNext, 'aula', 'aulas')} para chegar ao nível ${L.nxt.name}.` : 'Você chegou ao nível máximo. Continue evoluindo.'}</p>
+      <div class="bar"><i style="width:${L.pct}%"></i></div>
+      <div class="level-steps">${LEVELS.map((l, i) => `<span class="${i <= L.i ? 'on' : ''}">${l.name.toUpperCase()}</span>`).join('')}</div>
     </div>
   </div>`;
 }
-function showLesson(mi, li){
-  currentLesson = {mi, li};
-  openModules.add(mi);
-  renderCourseDetail();
-  $('#lessonArea').scrollIntoView({behavior: 'smooth', block: 'start'});
+
+/* ------------------------------------------------------------------
+   Páginas
+   ------------------------------------------------------------------ */
+function pageHome(){
+  const t = totals(), r = resumeTarget(), st = streak(), L = level();
+  const avg = t.total ? Math.round(t.done / t.total * 100) : 0;
+  let resume = '';
+  if(r && r.n){
+    const s = stats(r.c);
+    const href = `#/aula/${encodeURIComponent(r.c.id)}/${r.n.mi}/${r.n.li}`;
+    const started = s.done > 0;
+    resume = `<section class="resume">
+      <a class="resume-media" href="${href}" aria-label="Assistir ${esc(r.n.l.title)}">${art(r.c)}
+        <div class="resume-tag"><span class="chip chip-glass">${ic(typeIcon(r.n.l.type))} ${typeLabel(r.n.l.type)}</span>${r.n.l.min ? `<span class="chip chip-glass">${ic('clock')} ${fmtMin(r.n.l.min)}</span>` : ''}</div>
+        <span class="resume-play">${ic('play', 'ic-fill')}</span>
+      </a>
+      <div class="resume-body">
+        <span class="kicker">${started ? 'Continue de onde parou' : 'Comece por aqui'}</span>
+        <div class="resume-course">${esc(r.c.name)} · ${esc(r.n.m.name)}</div>
+        <h2 class="display resume-title">${esc(r.n.l.title)}</h2>
+        <div class="resume-meta">
+          <span>${ic('layers')} Aula ${lessonsOf(r.c).findIndex(x => x.k === r.n.k) + 1} de ${s.total}</span>
+          ${s.left ? `<span>${ic('clock')} Faltam ${fmtMin(s.left)} para concluir</span>` : ''}
+        </div>
+        <div class="resume-progress"><div class="row"><span>Progresso do curso</span><b>${s.pct}%</b></div><div class="bar"><i style="width:${s.pct}%"></i></div></div>
+        <div class="resume-actions">
+          <a class="btn btn-primary btn-lg" href="${href}">${ic('play', 'ic-fill')} ${started ? 'Continuar' : 'Começar agora'}</a>
+          <a class="btn btn-ghost btn-lg" href="#/curso/${encodeURIComponent(r.c.id)}">Ver curso</a>
+        </div>
+      </div>
+    </section>`;
+  }
+  const open = openCourses(), locked = lockedCourses();
+  return `
+    <section class="greet">
+      <div>
+        <h1 class="display greet-title">${greeting()}, <span>${esc(firstName())}.</span></h1>
+        <p>${t.done ? 'Bom te ver de volta. Mais uma aula hoje e você mantém o ritmo.' : 'Sua jornada começa hoje. Escolha a primeira aula e dê o primeiro passo.'}</p>
+      </div>
+      <div class="greet-badges">
+        <span class="chip chip-accent">${ic('award')} Nível ${L.cur.name}</span>
+        <span class="chip">${ic('flame')} ${st ? plural(st, 'dia seguido', 'dias seguidos') : 'Comece sua sequência'}</span>
+      </div>
+    </section>
+    ${resume}
+    <section class="stats">
+      <div class="stat hl"><b>${avg}<small>%</small></b><span>Progresso geral</span></div>
+      <div class="stat"><b>${t.done}<small>/${t.total}</small></b><span>Aulas concluídas</span></div>
+      <div class="stat"><b>${st}</b><span>${st === 1 ? 'Dia seguido' : 'Dias seguidos'} estudando</span></div>
+      <div class="stat"><b>${t.finished.length}</b><span>${t.finished.length === 1 ? 'Certificado' : 'Certificados'}</span></div>
+    </section>
+    <section class="sec">
+      <div class="sec-head"><div><h2>Seus cursos</h2><p>${plural(open.length, 'treinamento liberado', 'treinamentos liberados')}</p></div><a class="link-more" href="#/cursos">Ver todos ${ic('chevron-right')}</a></div>
+      ${open.length ? `<div class="posters">${open.map(poster).join('')}</div>` : '<div class="empty">Nenhum curso liberado ainda.</div>'}
+    </section>
+    ${locked.length ? `<section class="sec">
+      <div class="sec-head"><div><h2>Para ir além</h2><p>Treinamentos que você ainda pode desbloquear</p></div><a class="link-more" href="#/cursos" data-filter-go="locked">Ver todos ${ic('chevron-right')}</a></div>
+      <div class="offers">${locked.slice(0, 3).map(offer).join('')}</div>
+    </section>` : ''}
+    <section class="sec">${levelCard()}</section>`;
 }
 
-/* ---------------- Eventos (delegação) ---------------- */
-document.addEventListener('click', e => {
-  const t = e.target.closest('button, a');
-  if(!t) {
-    if(!e.target.closest('.user-menu')) closeUserMenu();
-    return;
-  }
-  if(!t.closest('.user-menu')) closeUserMenu();
+function filtered(){
+  return state.courses.filter(c => {
+    const s = stats(c);
+    if(filter === 'locked' && !c.locked) return false;
+    if(filter === 'progress' && (c.locked || s.pct === 100)) return false;
+    if(filter === 'done' && (c.locked || !s.total || s.pct < 100)) return false;
+    if(searchTerm){
+      const hay = [c.name, c.desc, c.tag, ...lessonsOf(c).map(x => x.l.title)].join(' ').toLocaleLowerCase('pt-BR');
+      if(!hay.includes(searchTerm)) return false;
+    }
+    return true;
+  });
+}
+function coursesGrid(){
+  const list = filtered();
+  return list.length ? `<div class="poster-grid">${list.map(poster).join('')}</div>`
+    : `<div class="empty">${searchTerm ? `Nada encontrado para “${esc(searchTerm)}”.` : 'Nenhum curso nesta categoria ainda.'}</div>`;
+}
+function pageCourses(){
+  const F = [['all', 'Todos'], ['progress', 'Em andamento'], ['done', 'Concluídos'], ['locked', 'Para desbloquear']];
+  return `
+    <section class="page-title">
+      <div><h1 class="display">Cursos</h1><p>${plural(state.courses.length, 'treinamento', 'treinamentos')} na plataforma</p></div>
+      <div class="filters" role="tablist">${F.map(([v, l]) => `<button class="filter${filter === v ? ' active' : ''}" data-filter="${v}">${l}</button>`).join('')}</div>
+    </section>
+    ${searchTerm ? `<p class="muted" style="margin:-8px 0 20px">Resultados para “${esc(searchTerm)}” · <button class="link-more" data-act="clear-search" style="min-height:auto">Limpar busca</button></p>` : ''}
+    <div id="courseGrid">${coursesGrid()}</div>`;
+}
 
-  if(t.dataset.continue){ openCourse(t.dataset.continue, {resume: true}); return; }
-  if(t.dataset.course){ openCourse(t.dataset.course); return; }
-  if(t.dataset.hero){ heroIndex += Number(t.dataset.hero); renderHero(); return; }
-  if(t.dataset.heroGo){ heroIndex = Number(t.dataset.heroGo); renderHero(); return; }
-  if(t.dataset.gotoFilter){ goFilter(t.dataset.gotoFilter); return; }
-  if(t.dataset.filter){ goFilter(t.dataset.filter); return; }
-  if(t.dataset.view){ goView(t.dataset.view); return; }
-  if(t.dataset.module){
-    const mi = Number(t.dataset.module);
-    openModules.has(mi) ? openModules.delete(mi) : openModules.add(mi);
-    t.closest('.module').classList.toggle('open');
-    t.setAttribute('aria-expanded', openModules.has(mi));
-    return;
-  }
-  if(t.dataset.lesson){ const [mi, li] = t.dataset.lesson.split('-').map(Number); showLesson(mi, li); return; }
-  if(t.id === 'nextLesson'){ const [mi, li] = t.dataset.next.split('-').map(Number); showLesson(mi, li); return; }
-  if(t.id === 'markComplete' && currentCourse && currentLesson){
-    const key = lessonKey(currentCourse, currentLesson.mi, currentLesson.li);
-    if(!state.completed.includes(key)){ state.completed.push(key); save(); toast('Aula marcada como concluída!'); }
-    renderCourseDetail();
-    return;
-  }
-  if(t.dataset.close){ $('#' + t.dataset.close).classList.add('hidden'); return; }
-  if(t.dataset.action === 'profile'){ openProfile(); return; }
-  if(t.dataset.action === 'logout'){ logout(); return; }
-});
+function pageCourse(c){
+  const s = stats(c), n = nextOf(c);
+  const sel = Math.min(season[c.id] ?? (n ? n.mi : 0), Math.max(c.modules.length - 1, 0));
+  const m = c.modules[sel];
+  const cta = !n ? '' : `<a class="btn btn-primary btn-lg" href="#/aula/${encodeURIComponent(c.id)}/${n.mi}/${n.li}">${ic('play', 'ic-fill')} ${s.pct === 100 ? 'Assistir de novo' : s.done ? `Continuar: aula ${lessonsOf(c).findIndex(x => x.k === n.k) + 1}` : 'Começar curso'}</a>`;
+  return `
+    <a class="back" href="#/cursos">${ic('arrow-left')} Todos os cursos</a>
+    <section class="series-hero">${art(c)}
+      <div class="series-info">
+        <span class="kicker">${esc(cap(c.tag))}</span>
+        <h1 class="display series-title">${esc(c.name)}</h1>
+        <p class="series-desc">${esc(c.desc)}</p>
+        <div class="series-meta">
+          <span class="chip chip-glass">${ic('layers')} ${plural(c.modules.length, 'módulo', 'módulos')}</span>
+          <span class="chip chip-glass">${ic('courses')} ${plural(s.total, 'aula', 'aulas')}</span>
+          ${s.mins ? `<span class="chip chip-glass">${ic('clock')} ${fmtMin(s.mins)}</span>` : ''}
+        </div>
+        ${s.total ? `<div class="series-progress"><div class="row"><span>${s.done} de ${s.total} aulas concluídas</span><b>${s.pct}%</b></div><div class="bar"><i style="width:${s.pct}%"></i></div></div>` : ''}
+        <div class="series-actions">${cta}</div>
+      </div>
+    </section>
+    ${s.total && s.pct === 100 ? `<div class="cert-banner"><div><b>Curso concluído</b><span>Parabéns! Seu certificado já está disponível.</span></div><button class="btn btn-primary" data-cert="${esc(c.id)}">${ic('award')} Ver certificado</button></div>` : ''}
+    <section class="sec">
+      ${c.modules.length ? `
+        <div class="seasons" role="tablist">${c.modules.map((mm, i) => `<button class="season${i === sel ? ' active' : ''}" data-season="${i}" data-course-id="${esc(c.id)}">Módulo ${pad(i + 1)}</button>`).join('')}</div>
+        <div class="season-head"><h3>${esc(m.name)}</h3><span>${plural(m.lessons.length, 'aula', 'aulas')}${m.lessons.some(l => l.min) ? ' · ' + fmtMin(m.lessons.reduce((a, l) => a + (l.min || 0), 0)) : ''}</span></div>
+        <div class="episodes">${m.lessons.map((l, li) => {
+          const k = key(c, sel, li), d = isDone(k);
+          return `<a class="ep${d ? ' done' : ''}" href="#/aula/${encodeURIComponent(c.id)}/${sel}/${li}">
+            <span class="ep-num">${pad(li + 1)}</span>
+            <span class="ep-thumb">${art(c)}<span class="ep-thumb-ic"><span>${ic(typeIcon(l.type), l.type === 'video' ? 'ic-fill' : '')}</span></span>${d ? '<span class="bar"><i style="width:100%"></i></span>' : ''}</span>
+            <span class="ep-body"><h4>${esc(l.title)}</h4><p>${esc(l.body || typeLabel(l.type))}</p></span>
+            <span class="ep-side">${l.min ? fmtMin(l.min) : typeLabel(l.type)}<span class="ep-check" aria-label="${d ? 'Concluída' : 'Não concluída'}">${d ? ic('check') : ''}</span></span>
+          </a>`;
+        }).join('') || '<div class="empty">As aulas deste módulo serão adicionadas em breve.</div>'}</div>`
+      : '<div class="empty">Este curso ainda não tem módulos. Eles aparecerão aqui assim que forem publicados.</div>'}
+    </section>`;
+}
 
-$('#coursesNav').addEventListener('click', () => { courseFilter = 'all'; });
-$('#backCourses').addEventListener('click', () => goView('courses'));
-$('#mobileMenu').addEventListener('click', () => { $('#sidebar').classList.add('open'); $('#sidebarScrim').classList.add('show'); });
-$('#sidebarScrim').addEventListener('click', closeSidebar);
-$('#notifyButton').addEventListener('click', () => toast('Você não tem novas notificações.'));
-$('#userChip').addEventListener('click', () => {
-  const dd = $('#userDropdown'); const open = dd.classList.toggle('hidden') === false;
-  $('#userChip').setAttribute('aria-expanded', open);
-});
-function closeUserMenu(){ $('#userDropdown').classList.add('hidden'); $('#userChip').setAttribute('aria-expanded', 'false'); }
-$('#profileButton').addEventListener('click', openProfile);
-$('#logoutButton').addEventListener('click', logout);
-function openProfile(){
-  const name = state.user?.name || 'Aluno';
-  $('#profileName').textContent = name;
-  $('#profileInitial').textContent = name.charAt(0).toUpperCase();
-  $('#profilePhone').textContent = state.user?.phone ? state.user.phone : 'Membro ELITE';
-  $('#profileModal').classList.remove('hidden');
-  closeSidebar();
+function pageLesson(c, mi, li){
+  const m = c.modules[mi], l = m?.lessons[li];
+  if(!l) return pageCourse(c);
+  markStudy();
+  const k = key(c, mi, li), d = isDone(k), s = stats(c);
+  const all = lessonsOf(c), idx = all.findIndex(x => x.k === k);
+  const prev = all[idx - 1], next = all[idx + 1];
+  const emb = l.type === 'video' ? embedUrl(l.url) : '';
+  const pdf = l.type === 'pdf' ? safeUrl(l.url) : '';
+  const media = emb
+    ? `<div class="player"><iframe src="${esc(emb)}" title="${esc(l.title)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen loading="lazy"></iframe></div>`
+    : `<div class="player-alt">${art(c)}<span class="chip chip-glass">${ic(typeIcon(l.type))} ${typeLabel(l.type)}</span><p class="display">${esc(l.title)}</p>${pdf ? `<a class="btn btn-primary" href="${esc(pdf)}" target="_blank" rel="noopener">${ic('external')} Abrir material</a>` : '<span class="muted">Leia o conteúdo da aula logo abaixo.</span>'}</div>`;
+  const notes = state.notes[k] || '';
+  const qs = state.questions[k] || [];
+  const tabs = [['about', 'Sobre a aula', 'text'], ['materials', 'Materiais', 'file'], ['notes', 'Anotações', 'note'], ['qa', 'Dúvidas', 'chat']];
+  const mats = all.filter(x => x.mi === mi && x.l.type === 'pdf' && safeUrl(x.l.url));
+  const panel = {
+    about: `<p>${esc(l.body || 'Sem descrição para esta aula.')}</p>`,
+    materials: mats.length ? `<div style="display:flex;flex-direction:column;gap:10px">${mats.map(x => `<div class="material"><span class="material-ic">${ic('file')}</span><span><b>${esc(x.l.title)}</b><small>${esc(m.name)}</small></span><a class="btn btn-line" href="${esc(safeUrl(x.l.url))}" target="_blank" rel="noopener">${ic('external')} Abrir</a></div>`).join('')}</div>` : '<p class="muted">Este módulo não tem materiais para baixar.</p>',
+    notes: `<div class="notes-box"><label for="noteText" style="margin-top:0">Suas anotações desta aula</label><textarea id="noteText" data-note="${esc(k)}" placeholder="Escreva os pontos principais, ideias e próximos passos...">${esc(notes)}</textarea><p class="notes-status" id="noteStatus">${notes ? 'Salvo neste aparelho.' : 'As anotações são salvas automaticamente.'}</p></div>`,
+    qa: `<form class="qa-form" data-qa="${esc(k)}"><input id="qaInput" placeholder="Escreva sua dúvida sobre esta aula" aria-label="Sua dúvida"><button class="btn btn-primary" type="submit">Enviar</button></form>
+      <div class="qa-list">${qs.length ? qs.slice().reverse().map(q => `<div class="qa"><small>Você · ${esc(new Date(q.at).toLocaleDateString('pt-BR'))}</small>${esc(q.text)}</div>`).join('') : '<p class="muted">Nenhuma dúvida enviada ainda. No protótipo, as dúvidas ficam salvas só para você.</p>'}</div>`
+  };
+  const playlist = c.modules.map((mm, a) => `<div class="pl-mod">Módulo ${pad(a + 1)} · ${esc(mm.name.replace(/^Módulo\s*\d+\s*[—-]\s*/i, ''))}</div>` + mm.lessons.map((ll, b) => {
+    const kk = key(c, a, b), dd = isDone(kk), cur = a === mi && b === li;
+    return `<a class="pl-item${dd ? ' done' : ''}${cur ? ' current' : ''}" href="#/aula/${encodeURIComponent(c.id)}/${a}/${b}" ${cur ? 'aria-current="true"' : ''}>
+      <span class="pl-ic">${dd ? ic('check') : cur ? ic('play', 'ic-fill') : ic(typeIcon(ll.type))}</span>
+      <span><b>${esc(ll.title)}</b><small>${typeLabel(ll.type)}${ll.min ? ' · ' + fmtMin(ll.min) : ''}</small></span></a>`;
+  }).join('')).join('');
+  return `
+    <a class="back" href="#/curso/${encodeURIComponent(c.id)}">${ic('arrow-left')} ${esc(c.name)}</a>
+    <div class="lesson-layout">
+      <div>
+        ${media}
+        <div class="lesson-head">
+          <div><div class="crumbs"><a href="#/curso/${encodeURIComponent(c.id)}">${esc(c.name)}</a> · ${esc(m.name)}</div><h1 class="display">${esc(l.title)}</h1></div>
+          <div class="lesson-actions">
+            ${prev ? `<a class="btn btn-ghost" href="#/aula/${encodeURIComponent(c.id)}/${prev.mi}/${prev.li}" aria-label="Aula anterior">${ic('chevron-left')}</a>` : ''}
+            <button class="btn ${d ? 'done' : 'btn-primary'}" data-complete="${esc(k)}">${ic('check')} ${d ? 'Concluída' : 'Marcar como concluída'}</button>
+            ${next ? `<a class="btn btn-ghost" href="#/aula/${encodeURIComponent(c.id)}/${next.mi}/${next.li}">Próxima ${ic('chevron-right')}</a>` : ''}
+          </div>
+        </div>
+        <div id="autoNext"></div>
+        <div class="tabs" role="tablist">${tabs.map(([v, t, i]) => `<button class="${lessonTab === v ? 'active' : ''}" data-ltab="${v}" role="tab" aria-selected="${lessonTab === v}">${ic(i)} ${t}${v === 'qa' && qs.length ? ` (${qs.length})` : ''}</button>`).join('')}</div>
+        <div class="tab-panel" id="lessonPanel">${panel[lessonTab] || panel.about}</div>
+      </div>
+      <aside class="playlist">
+        <div class="playlist-head"><b>${esc(c.name)}</b><span>${s.done} de ${s.total} aulas · ${s.pct}%</span><div class="bar"><i style="width:${s.pct}%"></i></div></div>
+        <div class="playlist-body">${playlist}</div>
+      </aside>
+    </div>`;
+}
+
+function pageOffer(c){
+  const learn = (c.learn && c.learn.length ? c.learn : c.modules.map(m => m.name)).filter(Boolean);
+  const emb = embedUrl(c.trailerUrl);
+  const s = stats(c);
+  return `
+    <a class="back" href="#/cursos">${ic('arrow-left')} Todos os cursos</a>
+    <section class="series-hero">${art(c)}
+      <div class="series-info">
+        <span class="kicker">${ic('lock')} Para desbloquear</span>
+        <h1 class="display series-title">${esc(c.name)}</h1>
+        <p class="series-desc">${esc(c.desc)}</p>
+        <div class="series-meta">
+          ${c.modules.length ? `<span class="chip chip-glass">${ic('layers')} ${plural(c.modules.length, 'módulo', 'módulos')}</span>` : ''}
+          ${s.total ? `<span class="chip chip-glass">${ic('courses')} ${plural(s.total, 'aula', 'aulas')}</span>` : ''}
+          <span class="chip chip-glass">${ic('award')} Certificado de conclusão</span>
+        </div>
+        <div class="series-actions"><button class="btn btn-primary btn-lg" data-buy="${esc(c.id)}">Quero desbloquear ${ic('arrow-right')}</button></div>
+      </div>
+    </section>
+    <div class="sales-grid">
+      <div>
+        <div class="sec-head" style="margin-bottom:16px"><h2>Trailer</h2></div>
+        <div class="trailer">${emb ? `<iframe src="${esc(emb)}" title="Trailer de ${esc(c.name)}" allow="fullscreen; picture-in-picture; encrypted-media" allowfullscreen loading="lazy"></iframe>` : `${art(c)}<div class="trailer-empty"><span>${ic('play')} Trailer em breve</span></div>`}</div>
+        ${learn.length ? `<div class="sec"><div class="sec-head"><h2>O que você vai aprender</h2></div><ul class="learn">${learn.map(x => `<li>${ic('check')}<span>${esc(x)}</span></li>`).join('')}</ul></div>` : ''}
+        ${c.modules.length ? `<div class="sec"><div class="sec-head"><h2>Conteúdo</h2></div><div class="locked-mods">${c.modules.map((m, i) => `<div><b>${pad(i + 1)}</b>${esc(m.name)}<span class="muted" style="margin-left:auto">${plural(m.lessons.length, 'aula', 'aulas')}</span>${ic('lock')}</div>`).join('')}</div></div>` : ''}
+      </div>
+      <aside class="buy-card">
+        <span class="kicker">Acesso completo</span>
+        ${priceHTML(c, true)}
+        <ul class="buy-list">
+          <li>${ic('check')} Todas as aulas e materiais do curso</li>
+          <li>${ic('check')} Assista no seu ritmo, no celular ou computador</li>
+          <li>${ic('check')} Certificado ao concluir</li>
+        </ul>
+        <button class="btn btn-primary btn-lg full" data-buy="${esc(c.id)}">Desbloquear agora</button>
+        <p class="buy-note" id="buyNote">${c.checkoutUrl ? 'Você será levado ao checkout oficial.' : ''}</p>
+      </aside>
+    </div>`;
+}
+
+function pageLibrary(){
+  const items = [];
+  openCourses().forEach(c => lessonsOf(c).forEach(x => { if(x.l.type === 'pdf' && safeUrl(x.l.url)) items.push(x); }));
+  return `
+    <section class="page-title"><div><h1 class="display">Materiais</h1><p>Guias, checklists e PDFs dos seus cursos.</p></div></section>
+    ${items.length ? `<div class="lib-grid">${items.map(x => `<article class="lib-item">
+        <span class="material-ic">${ic('file')}</span>
+        <h3>${esc(x.l.title)}</h3><p>${esc(x.c.name)} · ${esc(x.m.name)}</p>
+        <a class="btn btn-line" href="${esc(safeUrl(x.l.url))}" target="_blank" rel="noopener">${ic('external')} Abrir material</a>
+      </article>`).join('')}</div>` : '<div class="empty">Seus materiais aparecerão aqui quando forem adicionados aos cursos.</div>'}`;
+}
+
+function pageProgress(){
+  const t = totals(), st = streak(), avg = t.total ? Math.round(t.done / t.total * 100) : 0;
+  const set = new Set(state.days), today = todayISO();
+  const cells = Array.from({length: 28}, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (27 - i)); const iso = todayISO(d); return `<i class="${set.has(iso) ? 'on' : ''}${iso === today ? ' today' : ''}" title="${d.toLocaleDateString('pt-BR')}"></i>`; }).join('');
+  return `
+    <section class="page-title"><div><h1 class="display">Evolução</h1><p>Seu ritmo, seu nível e suas conquistas.</p></div></section>
+    ${levelCard()}
+    <section class="stats">
+      <div class="stat hl"><b>${avg}<small>%</small></b><span>Progresso geral</span></div>
+      <div class="stat"><b>${t.done}<small>/${t.total}</small></b><span>Aulas concluídas</span></div>
+      <div class="stat"><b>${st}</b><span>${st === 1 ? 'Dia seguido' : 'Dias seguidos'}</span></div>
+      <div class="stat"><b>${state.days.length}</b><span>Dias de estudo no total</span></div>
+    </section>
+    <div class="two-col sec">
+      <div class="panel"><h3>Últimas 4 semanas</h3><div class="heat">${cells}</div><div class="heat-legend"><span>4 semanas atrás</span><span>Hoje</span></div></div>
+      <div class="panel"><h3>Certificados</h3>${t.finished.length ? `<div class="certs">${t.finished.map(c => `<button class="cert-row" data-cert="${esc(c.id)}">${ic('award')}<span>${esc(c.name)}</span>${ic('chevron-right')}</button>`).join('')}</div>` : '<p class="muted">Conclua todas as aulas de um curso para liberar o certificado.</p>'}</div>
+    </div>
+    <div class="panel sec"><h3>Progresso por curso</h3><div class="course-progress">${openCourses().map(cpItem).join('') || '<p class="muted">Nenhum curso liberado.</p>'}</div></div>`;
+}
+
+function pageProfile(){
+  const u = state.user || {}, L = level();
+  return `
+    <section class="page-title"><div><h1 class="display">Perfil</h1></div></section>
+    <div class="panel profile-card">
+      <span class="avatar avatar-xl">${esc((u.name || 'A').charAt(0).toUpperCase())}</span>
+      <div><h2>${esc(u.name || 'Aluno')}</h2><p class="muted">Nível ${L.cur.name} · ${plural(state.completed.length, 'aula concluída', 'aulas concluídas')}</p></div>
+    </div>
+    <form class="panel sec profile-form" id="profileForm">
+      <h3>Seus dados</h3>
+      <label for="pfName" style="margin-top:0">Nome</label><input id="pfName" value="${esc(u.name || '')}" autocomplete="name">
+      <label for="pfPhone">Telefone</label><input id="pfPhone" type="tel" value="${esc(u.phone || '')}" placeholder="(00) 00000-0000" autocomplete="tel">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px"><button class="btn btn-primary" type="submit">Salvar alterações</button><button class="btn btn-line" type="button" data-act="logout">${ic('logout')} Sair da conta</button></div>
+    </form>`;
+}
+
+/* ------------------------------------------------------------------
+   Roteador
+   ------------------------------------------------------------------ */
+function parseRoute(){
+  const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+  return {name: parts[0] || 'inicio', args: parts.slice(1)};
+}
+function build(){
+  // devolve {html, nav, title} para a rota atual, ou null se redirecionou
+  const {name, args} = parseRoute();
+  if(['curso', 'aula', 'oferta'].includes(name)){
+    const c = findCourse(args[0]);
+    if(!c){ location.replace('#/cursos'); return null; }
+    if(c.locked && name !== 'oferta'){ location.replace('#/oferta/' + encodeURIComponent(c.id)); return null; }
+    if(!c.locked && name === 'oferta'){ location.replace('#/curso/' + encodeURIComponent(c.id)); return null; }
+    const html = name === 'curso' ? pageCourse(c) : name === 'oferta' ? pageOffer(c) : pageLesson(c, +args[1] || 0, +args[2] || 0);
+    return {html, nav: 'cursos', title: `${c.name} — ELITE Academy`};
+  }
+  const pages = {cursos: pageCourses, biblioteca: pageLibrary, evolucao: pageProgress, perfil: pageProfile};
+  const fn = pages[name] || pageHome;
+  return {html: fn(), nav: pages[name] ? name : 'inicio', title: 'ELITE Academy — Área de membros'};
+}
+function render(){
+  if(!state.user) return;
+  clearAutoNext();
+  const r = build(); if(!r) return;
+  $('#view').innerHTML = r.html;
+  document.title = r.title;
+  $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === r.nav));
+  renderChrome();
+  if(render.last !== location.hash){ window.scrollTo(0, 0); render.last = location.hash; }
+}
+// atualiza só partes da página (evita recarregar o vídeo da aula)
+function patch(selectors){
+  const r = build(); if(!r) return;
+  const tmp = document.createElement('div'); tmp.innerHTML = r.html;
+  selectors.forEach(sel => { const a = $(sel, $('#view')), b = $(sel, tmp); if(a && b) a.replaceWith(b); });
+  renderChrome();
+}
+function renderChrome(){
+  const name = state.user?.name || 'Aluno', ini = name.charAt(0).toUpperCase(), L = level(), st = streak();
+  $('#topAvatar').textContent = ini; $('#sideAvatar').textContent = ini;
+  $('#sideName').textContent = name; $('#sideRank').textContent = 'Nível ' + L.cur.name;
+  $('#streakChip').innerHTML = `${ic('flame')} ${st}`;
+  $('#streakChip').classList.toggle('off', !st);
+  $('#streakChip').title = st ? `${plural(st, 'dia seguido', 'dias seguidos')} estudando` : 'Assista uma aula hoje para começar sua sequência';
+  $('#sideLevel').innerHTML = `<div class="lv-top"><span>Seu nível</span>${ic('award')}</div><b>${L.cur.name}</b><div class="bar" style="margin-top:12px"><i style="width:${L.pct}%"></i></div><small>${L.nxt ? `${plural(L.toNext, 'aula', 'aulas')} para ${L.nxt.name}` : 'Nível máximo'}</small>`;
+}
+window.addEventListener('hashchange', render);
+
+/* ------------------------------------------------------------------
+   Ações
+   ------------------------------------------------------------------ */
+function clearAutoNext(){ clearInterval(autoNextTimer); autoNextTimer = null; }
+function startAutoNext(c, k){
+  const all = lessonsOf(c), idx = all.findIndex(x => x.k === k), next = all[idx + 1];
+  const box = $('#autoNext'); if(!box) return;
+  if(!next){
+    if(stats(c).pct === 100) box.innerHTML = `<div class="autonext"><span>Você concluiu <b>${esc(c.name)}</b>. Parabéns!</span><div><button class="btn btn-primary" data-cert="${esc(c.id)}">${ic('award')} Ver certificado</button></div></div>`;
+    return;
+  }
+  let n = 6;
+  const href = `#/aula/${encodeURIComponent(c.id)}/${next.mi}/${next.li}`;
+  const paint = () => { box.innerHTML = `<div class="autonext"><span>Próxima aula em <b>${n}s</b>: ${esc(next.l.title)}</span><div><a class="btn btn-primary" href="${href}">Assistir agora</a><button class="btn btn-ghost" data-act="cancel-next">Cancelar</button></div></div>`; };
+  paint();
+  autoNextTimer = setInterval(() => { n--; if(n <= 0){ clearAutoNext(); location.hash = href; } else paint(); }, 1000);
+}
+function toggleComplete(k){
+  const {args} = parseRoute(); const c = findCourse(args[0]); if(!c) return;
+  const parts = ['.lesson-actions', '.playlist'];
+  clearAutoNext(); $('#autoNext').innerHTML = '';
+  if(isDone(k)){ state.completed = state.completed.filter(x => x !== k); save(); patch(parts); toast('Aula marcada como não concluída.'); return; }
+  const before = level().i;
+  state.completed.push(k); markStudy(); save(); patch(parts);
+  if(level().i > before) toast(`Novo nível: ${level().cur.name}!`); else toast('Aula concluída!');
+  startAutoNext(c, k);
+}
+function openCert(id){
+  const c = findCourse(id); if(!c) return;
+  const date = new Date().toLocaleDateString('pt-BR', {day: '2-digit', month: 'long', year: 'numeric'});
+  const s = stats(c);
+  $('#certBody').innerHTML = `
+    <div class="cert-brand"><span class="brand"><span class="brand-mark">E</span><span>ELITE ACADEMY</span></span><span>CERTIFICADO DE CONCLUSÃO</span></div>
+    <div><p>Certificamos que</p><div class="cert-name" style="margin:10px 0 16px">${esc(state.user?.name || 'Aluno')}</div>
+    <p>concluiu o treinamento</p><h3 style="margin:10px 0 14px">${esc(c.name)}</h3>
+    <p>com ${plural(s.total, 'aula', 'aulas')} em ${plural(c.modules.length, 'módulo', 'módulos')}${s.mins ? `, totalizando ${fmtMin(s.mins)} de conteúdo` : ''}.</p></div>
+    <div class="cert-sign"><span>Emitido em ${esc(date)}</span><span><b>ELITE Academy</b></span></div>`;
+  $('#certModal').classList.remove('hidden');
+}
+function buy(id){
+  const c = findCourse(id); if(!c) return;
+  const u = safeUrl(c.checkoutUrl);
+  if(u){ window.open(u, '_blank', 'noopener'); return; }
+  const note = $('#buyNote'); if(note) note.textContent = 'O checkout deste curso ainda está sendo configurado.';
+  toast('Checkout ainda não configurado.');
 }
 function logout(){
-  state.user = null; save();
+  state.user = null; save(); clearAutoNext();
   $('#appView').classList.add('hidden'); $('#loginView').classList.remove('hidden');
-  $('#memberPassword').value = '';
+  $('#memberPassword').value = ''; closeMenu();
+  history.replaceState(null, '', location.pathname + location.search);
 }
+function closeMenu(){ $('#userDropdown').classList.add('hidden'); $('#userBtn').setAttribute('aria-expanded', 'false'); }
 
-/* Busca */
-$('#searchInput').addEventListener('input', e => {
-  searchTerm = e.target.value.trim().toLocaleLowerCase('pt-BR');
-  if(searchTerm && $('#coursesPage').classList.contains('hidden')){ courseFilter = 'all'; renderCourses(); showPage('coursesPage'); $('#searchInput').focus(); }
-  else renderCourses();
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, a');
+  if(!e.target.closest('.user-menu')) closeMenu();
+  if(!t) return;
+  const d = t.dataset;
+  if(t.id === 'userBtn'){ const dd = $('#userDropdown'); dd.classList.toggle('hidden'); t.setAttribute('aria-expanded', !dd.classList.contains('hidden')); return; }
+  if(d.close){ $('#' + d.close).classList.add('hidden'); return; }
+  if(d.act === 'master'){ openMasterLogin(); return; }
+  if(d.act === 'logout'){ logout(); return; }
+  if(d.act === 'print'){ window.print(); return; }
+  if(d.act === 'cancel-next'){ clearAutoNext(); $('#autoNext').innerHTML = ''; return; }
+  if(d.act === 'clear-search'){ searchTerm = ''; $('#searchInput').value = ''; render(); return; }
+  if(d.filterGo){ filter = d.filterGo; if(parseRoute().name === 'cursos') render(); return; }
+  if(d.filter){ filter = d.filter; $$('.filter').forEach(b => b.classList.toggle('active', b.dataset.filter === filter)); $('#courseGrid').innerHTML = coursesGrid(); return; }
+  if(d.season != null && d.courseId){ season[d.courseId] = +d.season; render(); requestAnimationFrame(() => $('.seasons')?.scrollIntoView({block: 'nearest'})); return; }
+  if(d.ltab){ lessonTab = d.ltab; patch(['.tabs', '#lessonPanel']); return; }
+  if(d.complete){ toggleComplete(d.complete); return; }
+  if(d.cert){ openCert(d.cert); return; }
+  if(d.buy){ buy(d.buy); return; }
 });
+document.addEventListener('input', e => {
+  if(e.target.id === 'noteText'){
+    state.notes[e.target.dataset.note] = e.target.value;
+    clearTimeout(save.t); save.t = setTimeout(() => { save(); const s = $('#noteStatus'); if(s) s.textContent = 'Salvo neste aparelho.'; }, 400);
+    const s = $('#noteStatus'); if(s) s.textContent = 'Salvando…';
+  }
+  if(e.target.id === 'searchInput'){
+    searchTerm = e.target.value.trim().toLocaleLowerCase('pt-BR');
+    if(parseRoute().name !== 'cursos'){ filter = 'all'; location.hash = '#/cursos'; }
+    else { const g = $('#courseGrid'); if(g) g.innerHTML = coursesGrid(); }
+  }
+});
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if(f.dataset.qa){
+    e.preventDefault();
+    const v = $('#qaInput').value.trim(); if(!v) return;
+    (state.questions[f.dataset.qa] ||= []).push({text: v, at: Date.now()}); save();
+    patch(['.tabs', '#lessonPanel']); toast('Dúvida registrada.');
+  }
+  if(f.id === 'profileForm'){
+    e.preventDefault();
+    const name = $('#pfName').value.trim(); if(!name){ toast('Digite seu nome.'); return; }
+    state.user = {...state.user, name, phone: $('#pfPhone').value.trim()}; save(); render(); toast('Perfil atualizado.');
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){ $$('.modal-wrap').forEach(m => m.classList.add('hidden')); closeMenu(); }
+});
+$$('.modal-wrap').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.add('hidden'); }));
 
-/* Modais: fechar clicando fora ou com Esc */
-$$('.modal-backdrop').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.add('hidden'); }));
-document.addEventListener('keydown', e => { if(e.key === 'Escape'){ $$('.modal-backdrop').forEach(m => m.classList.add('hidden')); closeUserMenu(); closeSidebar(); } });
-
-/* ---------------- Login ---------------- */
+/* ------------------------------------------------------------------
+   Login
+   ------------------------------------------------------------------ */
 function showApp(){
   $('#loginView').classList.add('hidden');
   $('#appView').classList.remove('hidden');
-  const name = state.user?.name || 'Aluno';
-  $('#userName').textContent = name.split(' ')[0];
-  $('#userInitial').textContent = name.charAt(0).toUpperCase();
-  heroIndex = 0;
-  renderAll();
-  showPage('homePage');
-  const target = new URLSearchParams(location.search).get('curso');
-  if(target) openCourse(target);
+  const q = new URLSearchParams(location.search).get('curso');
+  if(q && findCourse(q)){ history.replaceState(null, '', location.pathname); location.hash = '#/curso/' + encodeURIComponent(q); }
+  else if(!location.hash) location.hash = '#/inicio';
+  render();
 }
 $('#loginForm').addEventListener('submit', e => {
   e.preventDefault();
   const name = $('#memberName').value.trim(), pass = $('#memberPassword').value.trim();
   if(!name){ $('#loginError').textContent = 'Digite seu nome para continuar.'; $('#memberName').focus(); return; }
-  if(pass !== DEMO_PASSWORD){ $('#loginError').textContent = 'Senha incorreta.'; $('#memberPassword').focus(); return; }
+  if(pass !== DEMO_PASSWORD){ $('#loginError').textContent = 'Senha incorreta. Confira e tente novamente.'; $('#memberPassword').focus(); return; }
   state.user = {name, phone: $('#memberPhone').value.trim()};
   $('#loginError').textContent = '';
   save(); showApp();
 });
 
-/* ---------------- Área Master ---------------- */
+/* ------------------------------------------------------------------
+   Área Master
+   ------------------------------------------------------------------ */
 function openMasterLogin(){
   $('#masterPassword').value = ''; $('#masterLoginError').textContent = '';
-  $('#masterLoginModal').classList.remove('hidden'); $('#masterPassword').focus(); closeSidebar();
+  $('#masterLoginModal').classList.remove('hidden'); $('#masterPassword').focus();
 }
-$('#adminTrigger').addEventListener('click', openMasterLogin);
-$('#masterNav').addEventListener('click', openMasterLogin);
 function enterMaster(){
   if($('#masterPassword').value !== DEMO_PASSWORD){ $('#masterLoginError').textContent = 'Senha incorreta.'; return; }
   $('#masterLoginModal').classList.add('hidden');
-  populateAdminCourses(); renderAdminManager();
+  fillAdminCourses(); renderAdminManager();
   $('#adminModal').classList.remove('hidden');
 }
 $('#masterLoginButton').addEventListener('click', enterMaster);
 $('#masterPassword').addEventListener('keydown', e => { if(e.key === 'Enter') enterMaster(); });
-$$('.admin-tabs button').forEach(b => b.addEventListener('click', () => {
-  $$('.admin-tabs button').forEach(x => x.classList.toggle('active', x === b));
+$$('#adminModal .tabs button').forEach(b => b.addEventListener('click', () => {
+  $$('#adminModal .tabs button').forEach(x => x.classList.toggle('active', x === b));
   $$('.admin-tab').forEach(x => x.classList.add('hidden'));
   $('#' + b.dataset.tab).classList.remove('hidden');
 }));
-function populateAdminCourses(){ $('#adminCourse').innerHTML = state.courses.map(c => `<option value="${safe(c.id)}">${safe(c.name)}</option>`).join(''); }
-function renderAdminManager(){
-  const host = $('#adminCourseManager'); if(!host) return;
-  host.innerHTML = state.courses.map(c => `<article class="admin-course-row"><div><b>${safe(c.name)}</b><small>${c.modules.length} módulos · ${lessonsOf(c).length} aulas · ${c.locked ? 'Bloqueado' : 'Liberado'}</small></div><div class="admin-course-actions"><button data-toggle-course="${safe(c.id)}">${c.locked ? 'Liberar' : 'Bloquear'}</button><button data-copy-course="${safe(c.id)}">Copiar link</button></div></article>`).join('');
-  $$('[data-toggle-course]', host).forEach(b => b.addEventListener('click', () => {
-    const c = state.courses.find(x => x.id === b.dataset.toggleCourse); c.locked = !c.locked;
-    save(); renderAdminManager(); renderAll(); toast(c.locked ? 'Curso bloqueado.' : 'Curso liberado.');
-  }));
-  $$('[data-copy-course]', host).forEach(b => b.addEventListener('click', () => {
-    const url = location.origin + location.pathname + '?curso=' + encodeURIComponent(b.dataset.copyCourse);
-    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('Link do curso copiado!')).catch(() => toast(url));
-  }));
+function fillAdminCourses(){
+  $('#adminCourse').innerHTML = state.courses.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  fillModules();
 }
+function fillModules(){
+  const c = findCourse($('#adminCourse').value);
+  $('#moduleList').innerHTML = c ? c.modules.map(m => `<option value="${esc(m.name)}"></option>`).join('') : '';
+}
+$('#adminCourse').addEventListener('change', fillModules);
+function afterAdminChange(){ save(); fillAdminCourses(); renderAdminManager(); if(state.user && !$('#appView').classList.contains('hidden')) render(); }
+function renderAdminManager(){
+  $('#adminCourseManager').innerHTML = state.courses.map(c => `<div class="admin-row"><div><b>${esc(c.name)}</b><small>${plural(c.modules.length, 'módulo', 'módulos')} · ${plural(lessonsOf(c).length, 'aula', 'aulas')} · ${c.locked ? 'Bloqueado' : 'Liberado'}</small></div>
+    <div class="btns"><button data-adm-toggle="${esc(c.id)}">${c.locked ? 'Liberar' : 'Bloquear'}</button><button data-adm-copy="${esc(c.id)}">Copiar link</button></div></div>`).join('');
+}
+$('#adminCourseManager').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.admToggle){ const c = findCourse(b.dataset.admToggle); c.locked = !c.locked; afterAdminChange(); toast(c.locked ? 'Curso bloqueado.' : 'Curso liberado.'); }
+  if(b.dataset.admCopy){
+    const url = location.origin + location.pathname + '?curso=' + encodeURIComponent(b.dataset.admCopy);
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('Link copiado!')).catch(() => toast(url));
+  }
+});
 $('#addContent').addEventListener('click', () => {
-  const c = state.courses.find(x => x.id === $('#adminCourse').value);
-  const module = $('#adminModule').value.trim(), title = $('#adminTitle2').value.trim(), type = $('#adminType').value, url = $('#adminUrl').value.trim(), body = $('#adminBody').value.trim();
+  const c = findCourse($('#adminCourse').value);
+  const title = $('#adminLessonTitle').value.trim();
   if(!c || !title){ toast('Informe pelo menos o título da aula.'); return; }
-  const mName = module || 'Módulo 01 — Conteúdos';
+  const mName = $('#adminModule').value.trim() || 'Módulo 01 — Conteúdos';
   let m = c.modules.find(x => x.name === mName);
   if(!m){ m = {name: mName, lessons: []}; c.modules.push(m); }
-  m.lessons.push({title, type, url, body});
-  save();
-  $('#adminTitle2').value = $('#adminUrl').value = $('#adminBody').value = $('#adminModule').value = '';
-  renderAll(); renderAdminManager(); toast('Conteúdo adicionado ao curso!');
+  const min = parseInt($('#adminDuration').value, 10);
+  m.lessons.push({title, type: $('#adminType').value, url: $('#adminUrl').value.trim(), body: $('#adminBody').value.trim(), ...(min > 0 ? {min} : {})});
+  ['#adminLessonTitle', '#adminDuration', '#adminUrl', '#adminBody'].forEach(s => $(s).value = '');
+  afterAdminChange(); $('#adminCourse').value = c.id; fillModules();
+  toast('Aula adicionada!');
 });
 $('#addCourse').addEventListener('click', () => {
   const name = $('#newCourseName').value.trim(); if(!name){ toast('Digite o nome do curso.'); return; }
-  const c = {
+  state.courses.push({
     id: 'curso-' + Date.now(), name,
     desc: $('#newCourseDesc').value.trim() || 'Novo treinamento exclusivo da plataforma.',
+    learn: $('#newCourseLearn').value.split('\n').map(x => x.trim()).filter(Boolean),
+    price: $('#newCoursePrice').value.trim(),
     color: $('#newCourseColor').value, tag: 'NOVO TREINAMENTO',
     code: name.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase(),
-    locked: $('#newCourseLocked').checked, checkoutUrl: $('#newCourseCheckout').value.trim(), coverUrl: $('#newCourseCover').value.trim(),
-    progress: 0, modules: []
-  };
-  state.courses.push(c); save();
-  populateAdminCourses(); renderAdminManager(); renderAll();
-  $('#newCourseName').value = $('#newCourseDesc').value = $('#newCourseCover').value = $('#newCourseCheckout').value = '';
-  toast('Novo curso criado!');
-});
-$('#simulatePay').addEventListener('click', () => {
-  const url = $('#simulatePay').dataset.checkout;
-  if(url){ window.open(url, '_blank', 'noopener'); return; }
-  $('#paymentFeedback').textContent = 'Este curso ainda não tem checkout cadastrado. Fale com o administrador.';
+    locked: $('#newCourseLocked').checked,
+    coverUrl: $('#newCourseCover').value.trim(), trailerUrl: $('#newCourseTrailer').value.trim(), checkoutUrl: $('#newCourseCheckout').value.trim(),
+    modules: []
+  });
+  ['#newCourseName', '#newCourseDesc', '#newCourseLearn', '#newCoursePrice', '#newCourseCover', '#newCourseTrailer', '#newCourseCheckout'].forEach(s => $(s).value = '');
+  afterAdminChange(); toast('Curso criado!');
 });
 
+/* ------------------------------------------------------------------
+   Início
+   ------------------------------------------------------------------ */
 if(state.user) showApp();
