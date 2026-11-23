@@ -147,28 +147,41 @@
     </main>
   </div>
 
+  <div id="masterLoginModal" class="modal-backdrop hidden">
+    <div class="modal master-login-modal">
+      <button class="modal-close" data-close="masterLoginModal">×</button>
+      <div class="eyebrow"><i></i> ACESSO RESTRITO</div><h2>Área <span>Master.</span></h2>
+      <p class="muted">Entre para administrar cursos, módulos e aulas da ELITE Academy.</p>
+      <label for="masterPassword">Senha administrativa</label>
+      <input id="masterPassword" type="password" inputmode="numeric" placeholder="Digite sua senha">
+      <p id="masterLoginError" class="error"></p>
+      <button class="btn-primary full" id="masterLoginButton">ENTRAR NO MASTER ↗</button>
+    </div>
+  </div>
+
   <div id="adminModal" class="modal-backdrop hidden">
     <div class="modal admin-modal">
       <button class="modal-close" data-close="adminModal">×</button>
       <div class="eyebrow"><i></i> CONFIGURAÇÃO DA PLATAFORMA</div><h2>Painel de <span>gestão.</span></h2>
-      <p class="muted">Área demonstrativa para organizar os conteúdos dos cursos neste navegador.</p>
-      <div class="admin-tabs"><button class="active" data-tab="contentTab">Adicionar conteúdo</button><button data-tab="courseTab">Novo curso</button></div>
+      <p class="muted">Central de administração: organize a vitrine, os módulos, as aulas e os acessos.</p>
+      <div class="admin-tabs"><button class="active" data-tab="contentTab">Aulas e módulos</button><button data-tab="courseTab">Criar curso</button><button data-tab="manageTab">Gerenciar cursos</button></div>
       <div id="contentTab" class="admin-tab">
         <label>Curso</label><select id="adminCourse"></select>
         <label>Nome do módulo</label><input id="adminModule" placeholder="Ex.: Módulo 01 — Comece aqui">
         <label>Título da aula / material</label><input id="adminTitle" placeholder="Ex.: Introdução ao método">
         <label>Tipo de conteúdo</label><select id="adminType"><option value="video">Vídeo (link)</option><option value="pdf">PDF / material</option><option value="text">Texto / aula escrita</option></select>
-        <label>Link (YouTube, Vimeo, PDF ou URL)</label><input id="adminUrl" placeholder="https://...">
+        <label>Link do vídeo ou arquivo</label><input id="adminUrl" placeholder="Cole o link do YouTube, Vimeo ou arquivo hospedado">
         <label>Texto ou descrição <small>opcional</small></label><textarea id="adminBody" rows="3" placeholder="Descrição, conteúdo da aula ou instruções..."></textarea>
         <button class="btn-primary full" id="addContent">SALVAR CONTEÚDO ↗</button>
       </div>
       <div id="courseTab" class="admin-tab hidden">
         <label>Nome do novo curso</label><input id="newCourseName" placeholder="Ex.: Mentoria de Vendas">
         <label>Descrição curta</label><input id="newCourseDesc" placeholder="O que o aluno vai aprender?">
-        <label>Cor de destaque</label><select id="newCourseColor"><option value="green">Verde neon</option><option value="purple">Roxo</option><option value="blue">Azul</option><option value="orange">Laranja</option></select>
-        <button class="btn-primary full" id="addCourse">CRIAR CURSO ↗</button>
+        <label>URL da capa (opcional)</label><input id="newCourseCover" placeholder="https://...imagem-da-capa.jpg"><label>Link do checkout (opcional)</label><input id="newCourseCheckout" placeholder="https://...checkout"><label>Cor de destaque</label><select id="newCourseColor"><option value="green">Verde neon</option><option value="purple">Roxo</option><option value="blue">Azul</option><option value="orange">Laranja</option></select>
+        <label class="admin-check"><input id="newCourseLocked" type="checkbox" checked> Criar como bloqueado (curso à venda)</label><button class="btn-primary full" id="addCourse">CRIAR CURSO ↗</button>
       </div>
-      <div class="admin-note">ⓘ Alterações ficam salvas apenas neste navegador (protótipo). Conecte um backend para publicar e gerenciar conteúdo real.</div>
+      <div id="manageTab" class="admin-tab hidden"><div id="adminCourseManager"></div></div>
+      <div class="admin-note">ⓘ Etapa de protótipo: neste momento os dados ficam neste navegador. A conexão segura com D1 e R2 será ativada na próxima etapa.</div>
     </div>
   </div>
 
