@@ -101,12 +101,20 @@
               <p>Seu ambiente de aprendizado</p>
               <div class="member-level"><span>STATUS DA CONTA</span><b><i></i> ATIVO</b></div>
             </section>
-            <section class="aside-card">
+            <section class="aside-card journey-card">
               <div class="aside-card-head"><span>RESUMO DA JORNADA</span><span>✧</span></div>
-              <div class="aside-stat"><span>Cursos disponíveis</span><b id="asideCourseCount">06</b></div>
-              <div class="aside-stat"><span>Aulas concluídas</span><b id="asideLessonCount">06</b></div>
-              <div class="aside-stat"><span>Progresso médio</span><b id="asideProgress">24%</b></div>
-              <div class="aside-progress"><i id="asideProgressBar"></i></div>
+              <div class="journey-overview">
+                <div class="journey-ring" id="journeyRing" style="--journey-progress:24%">
+                  <div class="journey-ring-inner"><b id="asideProgress">24%</b><small>GERAL</small></div>
+                </div>
+                <div class="journey-metrics">
+                  <div class="journey-metric"><span class="metric-dot green"></span><span>Cursos disponíveis</span><b id="asideCourseCount">06</b></div>
+                  <div class="journey-metric"><span class="metric-dot mint"></span><span>Aulas concluídas</span><b id="asideLessonCount">06</b></div>
+                  <div class="journey-metric"><span class="metric-dot gray"></span><span>Curso em destaque</span></div>
+                  <strong class="journey-current-course" id="asideCurrentCourse">Método LP</strong>
+                </div>
+              </div>
+              <div class="journey-caption">SEU PROGRESSO EM TODOS OS TREINAMENTOS</div>
             </section>
             <section class="aside-card activity-card">
               <div class="aside-card-head"><span>COMECE POR AQUI</span><span>↗</span></div>
